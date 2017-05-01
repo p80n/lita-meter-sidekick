@@ -1,0 +1,7 @@
+*.gem
+*.rbc
+.bundle
+.config
+lib/bundler/man
+pkg
+tmp
