@@ -16,15 +16,15 @@ module Lita
           bucket = s3.list_objects_v2(bucket: METERCTL_BUCKET)
           coreos = bucket.contents.select{|entry| entry.key.match(%r|coreos/.+/install|)}
           stable = coreos
+                     .map(&:key)
                      .reject{|entry| entry.match(/alpha|beta/)}
                      .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
                      .first
-                     .key
           beta = coreos
+                   .map(&:key)
                    .select{|entry| entry.end_with?('beta')}
                    .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
                    .first
-                   .key
 
           # FIXME how do you get this from the SDK
           url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/'
