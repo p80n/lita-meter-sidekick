@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
+gem 'aws-sdk'
+
 gemspec
 
-gem 'aws-sdk'
