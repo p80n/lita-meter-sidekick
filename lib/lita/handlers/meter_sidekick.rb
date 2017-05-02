@@ -18,12 +18,12 @@ module Lita
           stable = coreos
                      .map{|e| e.key.split('/')[1]}
                      .reject{|entry| entry.match(/alpha|beta/)}
-                     .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
+                     .sort{|a,b| Gem::Version.new(b) <=> Gem::Version.new(a) }
                      .first
           beta = coreos
                    .map{|e| e.key.split('/')[1]}
                    .select{|entry| entry.end_with?('beta')}
-                   .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
+                   .sort{|a,b| Gem::Version.new(b) <=> Gem::Version.new(a) }
                    .first
 
           # FIXME how do you get this from the SDK
