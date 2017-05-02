@@ -30,7 +30,7 @@ module Lita
           url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/'
           response.reply "#{url_base}/#{stable}\n#{url_base}/#{beta}"
         rescue => e
-          response.reply render_template('code_block', code: e.backtrace[0..12].join("\n"))
+          response.reply(render_template('exception', exception: e))
         end
       end
 
