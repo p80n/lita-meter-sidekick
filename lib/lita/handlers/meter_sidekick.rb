@@ -28,7 +28,7 @@ module Lita
 
           # FIXME how do you get this from the SDK
           url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
-          response.reply(render_template('installer_links', stable: "#{url_base}/#{stable}/install", beta: "#{url_base}/#{beta}/install")
+          response.reply(render_template('installer_links', stable: "#{url_base}/#{stable}/install", beta: "#{url_base}/#{beta}/install"))
         rescue => e
           response.reply(render_template('exception', exception: e))
           log e.message
