@@ -11,23 +11,27 @@ module Lita
 
 
       def latest(response)
-        s3 = Aws::S3::Client.new
-        bucket = Clients.s3.list_objects_v2(bucket: METERCTL_BUCKET)
-        coreos = bucket.contents.select{|entry| entry.key.match(%r|coreos/.+/install|)}
-        stable = coreos
-                   .reject{|entry| entry.match(/alpha|beta/)}
+        begin
+          s3 = Aws::S3::Client.new
+          bucket = s3.list_objects_v2(bucket: METERCTL_BUCKET)
+          coreos = bucket.contents.select{|entry| entry.key.match(%r|coreos/.+/install|)}
+          stable = coreos
+                     .reject{|entry| entry.match(/alpha|beta/)}
+                     .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
+                     .first
+                     .key
+          beta = coreos
+                   .select{|entry| entry.end_with?('beta')}
                    .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
                    .first
                    .key
-        beta = coreos
-                 .select{|entry| entry.end_with?('beta')}
-                 .sort{|a,b| Gem::Version.new(a) <=> Gem::Version.new(b) }
-                 .first
-                 .key
 
-        # FIXME how do you get this from the SDK
-        url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/'
-        response.reply("#{url_base}/#{stable}\n#{url_base}/#{beta}")
+          # FIXME how do you get this from the SDK
+          url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/'
+          response.reply "#{url_base}/#{stable}\n#{url_base}/#{beta}"
+        rescue => e
+          response.reply e.backtrace[0..12].join("\n")
+        end
       end
 
       Lita.register_handler(self)
