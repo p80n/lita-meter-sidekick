@@ -2,6 +2,7 @@ module Lita
   module Handlers
     class MeterSidekick < Handler
       include ::LitaMeterSidekick::S3
+      include ::LitaMeterSidekick::EC2
 
       begin
         route(/meter latest/, :latest, help: { 'meter latest' => 'Links to installers for latest version of the Meter' })
