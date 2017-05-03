@@ -12,7 +12,7 @@ module LitaMeterSidekick
     end
 
     def regions
-      @regions ||= Clients.ec2.describe_regions.data.regions.map(&:region_name)
+      @regions ||= Aws::EC2::Client.new.describe_regions.data.regions.map(&:region_name)
     end
 
   end
