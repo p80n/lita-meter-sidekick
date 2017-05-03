@@ -5,6 +5,7 @@ Lita.load_locales Dir[File.expand_path(
 )]
 
 require 'lita-meter-sidekick/s3'
+require 'lita-meter-sidekick/ec2'
 
 require 'lita/handlers/meter_sidekick'
 
