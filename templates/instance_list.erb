@@ -1,0 +1,10 @@
+Name                      |Instance ID                 |Status |Type      |Owner     |Region  |Age
+--------------------------|----------------------------|-------|----------|----------|--------|--------
+<% @instance.each do |i| %>
+<% tags   = i.tags %>
+<% name   = tags.find{|t| t.key.eql?('Name')} %>
+<% owner  = tags.find{|t| t.key.eql?('Owner')} %>
+<% age    = ((Time.now - i.launch_time) / (24*37600)).to_i %>
+<% region = i.placement.availability_zone.chop %>
+<%="%-26s|%12s|%10s|%10s|%10s|%10s|%5s" % [name, i.instance_id, i.state.name, i.instance_type, owner, region, age] %>
+<% end %>
