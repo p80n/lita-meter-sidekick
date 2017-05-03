@@ -8,7 +8,7 @@ module LitaMeterSidekick
       regions.each do |region|
         ec2 = Aws::EC2::Resource.new(region: region)
         instances = ec2.instances(filters: [{ name: 'tag:ApplicationRole', values:['6fusionMeter'] }])
-        meter_instances += instances
+        meter_instances += instances.entries
       end
       response.reply(render_template('instance_list', instances: meter_instances))
     end
