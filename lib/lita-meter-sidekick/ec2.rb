@@ -13,6 +13,20 @@ module LitaMeterSidekick
       response.reply(render_template('instance_list', instances: meter_instances))
     end
 
+    def list_instances(response, user=nil)
+      instances = []
+      regions.each do |region|
+        ec2 = Aws::EC2::Resource.new(region: region)
+        if user
+          instances += ec2.instances(filters: [{ name: 'tag:Owner', values:[user] }])
+        else
+          instances += ec2.instances.entries
+        end
+      end
+      response.reply(render_template('instance_list', instances: instances))
+    end
+
+
     def regions
       @regions ||= Aws::EC2::Client.new.describe_regions.data.regions.map(&:region_name)
     end

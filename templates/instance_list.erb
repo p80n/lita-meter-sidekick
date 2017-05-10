@@ -1,12 +1,11 @@
 ```
-Name                Instance ID          Status   Type      Owner     Region  Age
-
+Name                Status   Type      Owner     Region  Age
 <% @instances.each do |i| %>
 <% tags   = i.tags %>
 <% name   = tags.find{|t| t.key.eql?('Name')}&.value %>
 <% owner  = tags.find{|t| t.key.eql?('Owner')}&.value %>
 <% age    = ((Time.now - i.launch_time) / (24*37600)).to_i %>
 <% region = i.placement.availability_zone.chop %>
-<%="%-16s|%10s|%10s|%10s|%10s|%10s|%5s days\n" % [name, i.instance_id, i.state.name, i.instance_type, owner, region, age] %>
+<%="%-16s %10s %10s %10s %10s %10s %5s days\n" % [name, i.state.name, i.instance_type, owner, region, age] %>
 <% end %>
 ```
