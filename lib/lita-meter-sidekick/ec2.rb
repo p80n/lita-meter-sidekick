@@ -15,24 +15,18 @@ module LitaMeterSidekick
     end
 
     def list_instances(response, user=nil)
-      instances = redis.get('instances')
-
-      if instances
-        instances = JSON.parse(instances)
-      else
-        instances = Array.new
-        # FIXME use bulk endpoint
-        regions.each do |region|
-          ec2 = Aws::EC2::Resource.new(region: region)
-          if user
-            instances += ec2.instances(filters: [{ name: 'tag:Owner', values:[user] }])
-          else
-            instances += ec2.instances.entries
-          end
+      instances = Array.new
+      # FIXME use bulk endpoint
+      regions.each do |region|
+        ec2 = Aws::EC2::Resource.new(region: region)
+        if user
+          instances += ec2.instances(filters: [{ name: 'tag:Owner', values:[user] }])
+        else
+          instances += ec2.instances.entries
         end
-        redis.set('instances', instances.to_json)
-        redis.expire('instances', 60)
       end
+      redis.set('instances', instances.to_json)
+      redis.expire('instances', 60)
 
       content = render_template('instance_list', instances: instances)
       fallback = content.gsub('```','')
@@ -43,7 +37,6 @@ module LitaMeterSidekick
       end
 
     end
-
 
     def regions
       @regions ||= Aws::EC2::Client.new.describe_regions.data.regions.map(&:region_name)
