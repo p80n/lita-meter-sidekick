@@ -7,7 +7,7 @@ module Lita
     class Slack < Adapter
       # @api private
       class API
-        def send_files(room_or_user, content)
+        def send_file(room_or_user, content)
           call_api(
             "files.upload",
             as_user: true,
