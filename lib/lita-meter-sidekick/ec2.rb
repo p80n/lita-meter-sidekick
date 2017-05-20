@@ -26,7 +26,8 @@ module LitaMeterSidekick
       end
 
       content = render_template('instance_list', instances: instances)
-      attachment = Lita::Adapters::Slack::Attachment.new(content)
+      attachment = Lita::Adapters::Slack::Attachment.new({ text: content })
+
       #target = Lita::Source.new(user: response.user)
 
       case robot.config.robot.adapter
