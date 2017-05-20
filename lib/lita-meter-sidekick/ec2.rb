@@ -1,7 +1,5 @@
 require 'aws-sdk'
 require 'lita-slack'
-require 'pry'
-
 module LitaMeterSidekick
   module EC2
 

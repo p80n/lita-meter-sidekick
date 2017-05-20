@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gem 'aws-sdk'
 gem 'lita-slack'
-gem 'pry'
+#gem 'pry'
 
 group :test do
   gem 'rspec'
