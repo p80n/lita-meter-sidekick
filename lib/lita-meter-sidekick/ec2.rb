@@ -12,9 +12,7 @@ module LitaMeterSidekick
     end
     def list_filtered_instances(response)
       tag   = response.matches[0][0]
-      value = reponse.matches[1][0]
-      p tag
-      p value
+      value = response.matches[0][1]
       list_instances(response, [{ name: "tag:#{tag}", values: [value] }])
     end
 
