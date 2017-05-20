@@ -5,13 +5,13 @@ module Lita
       include ::LitaMeterSidekick::EC2
 
       begin
+
         route(/latest release/, :latest, help: { 'latest release' => 'Links to installers for latest version of the Meter' })
+        route(/meter latest/,   :latest, help: { 'meter latest'   => 'Links to installers for latest version of the Meter' })
 
-        route(/meter latest/, :latest, help: { 'meter latest' => 'Links to installers for latest version of the Meter' })
-
-        route(/meter deployed/, :list_deployed_meters, help: { 'meter deployed' => 'List all discoverable instances of the Meter in EC2' })
-
-        route(/instances/, :list_instances, help: { 'instances' => 'List all discoverable instances in EC2' })
+        route(/list instances/,    :list_instances,       help: { 'list instances' => 'List all discoverable instances in EC2' })
+        route(/list meters/,       :list_deployed_meters, help: { 'list meters' => 'List all discoverable instances of the Meter in EC2' })
+        route(/list my instances/, :list_user_instances,  help: { 'list instances' => 'List all discoverable instances in EC2' })
 
         Lita.register_handler(self)
 

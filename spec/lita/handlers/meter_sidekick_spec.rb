@@ -2,18 +2,22 @@ require "spec_helper"
 
 describe Lita::Handlers::MeterSidekick, lita_handler: true do
 
-  let(:botname) { "Lita" }
-
   # routes
-  describe "command : meter latest" do
-    it { is_expected.to route("#{botname} meter latest") }
+  describe "command : meter operations" do
+    it { is_expected.to route("meter latest") }
+    it { is_expected.to route("latest release") }
   end
 
-  describe "command : instances" do
-    it { is_expected.to route("#{botname} instances") }
+  describe "command : list operations" do
+    it { is_expected.to route("list meters") }
+    it { is_expected.to route("list instances") }
 
     it "reponds with a list of instances" do
-      send_message("instances")
+      send_message("list instances")
+      expect(replies.first).to match(/Name\s+ IP\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age.+/m)
+    end
+    it "reponds with a list of meter instances" do
+      send_message("list meters")
       expect(replies.first).to match(/Name\s+ IP\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age.+/m)
     end
 

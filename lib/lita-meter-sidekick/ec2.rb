@@ -5,25 +5,19 @@ module LitaMeterSidekick
   module EC2
 
     def list_deployed_meters(response)
-      meter_instances = []
-      regions.each do |region|
-        ec2 = Aws::EC2::Resource.new(region: region)
-        instances = ec2.instances(filters: [{ name: 'tag:ApplicationRole', values:['6fusionMeter'] }])
-        meter_instances += instances.entries
-      end
-      response.reply(render_template('instance_list', instances: meter_instances))
+      list_instances(response, [{ name: 'tag:ApplicationRole', values:['6fusionMeter'] }])
     end
 
-    def list_instances(response, user=nil)
+    def list_instances(response, filters=nil)
       instances = Array.new
       # FIXME use bulk endpoint
       regions.each do |region|
         ec2 = Aws::EC2::Resource.new(region: region)
-        if user
-          instances += ec2.instances(filters: [{ name: 'tag:Owner', values:[user] }])
-        else
-          instances += ec2.instances.entries
-        end
+#        if user
+          instances += ec2.instances(filters: filters).entries #[{ name: 'tag:Owner', values:[user] }])
+        # else
+        #   instances += ec2.instances.entries
+        # end
       end
 
       content = render_template('instance_list', instances: instances)
