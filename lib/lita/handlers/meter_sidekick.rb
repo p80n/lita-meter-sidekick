@@ -5,7 +5,7 @@ module Lita
       include ::LitaMeterSidekick::EC2
 
       begin
-        route(/latest release/, :latest, help: { 'meter latest' => 'Links to installers for latest version of the Meter' })
+        route(/latest release/, :latest, help: { 'latest release' => 'Links to installers for latest version of the Meter' })
 
         route(/meter latest/, :latest, help: { 'meter latest' => 'Links to installers for latest version of the Meter' })
 
