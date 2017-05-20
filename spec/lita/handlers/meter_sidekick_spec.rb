@@ -14,7 +14,7 @@ describe Lita::Handlers::MeterSidekick, lita_handler: true do
 
     it "reponds with a list of instances" do
       send_message("instances")
-      expect(replies.first).to match(/Name\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age.+/m)
+      expect(replies.first).to match(/Name\s+ IP\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age.+/m)
     end
 
   end

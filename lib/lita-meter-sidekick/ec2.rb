@@ -1,5 +1,45 @@
 require 'aws-sdk'
 require 'lita-slack'
+
+
+module Lita
+  module Adapters
+    class Slack < Adapter
+      # @api private
+      class API
+        def send_files(room_or_user, content)
+          call_api(
+            "files.upload",
+            as_user: true,
+            channels: room_or_user.id,
+            filetype: 'shell',
+            content: content
+          )
+        end
+
+      end
+    end
+  end
+end
+
+
+module Lita
+  module Adapters
+    class Slack < Adapter
+      # Slack-specific features made available to +Lita::Robot+.
+      # @api public
+      # @since 1.6.0
+      class ChatService
+
+        def send_file(target, content)
+          api.send_file(target, content)
+        end
+
+      end
+    end
+  end
+end
+
 module LitaMeterSidekick
   module EC2
 
@@ -26,11 +66,11 @@ module LitaMeterSidekick
 
       content = render_template('instance_list', instances: instances)
       fallback = content.gsub('```','')
-      attachment = Lita::Adapters::Slack::Attachment.new(fallback, text: content, fallback: fallback)
-      attachment.instance_variable_set('@text', content)
+#      attachment = Lita::Adapters::Slack::Attachment.new(fallback, text: content, fallback: fallback)
+ #     attachment.instance_variable_set('@text', content)
 
       case robot.config.robot.adapter
-      when :slack then robot.chat_service.send_attachment(response.user, attachment)
+      when :slack then robot.chat_service.send_file(response.user, content)
       else robot.send_message(response.user, content)
       end
 
