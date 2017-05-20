@@ -4,6 +4,7 @@ Lita.load_locales Dir[File.expand_path(
   File.join('..', '..', 'locales', '*.yml'), __FILE__
 )]
 
+require 'lita-meter-sidekick/adapter_patch'
 require 'lita-meter-sidekick/s3'
 require 'lita-meter-sidekick/ec2'
 
