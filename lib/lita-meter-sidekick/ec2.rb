@@ -17,7 +17,9 @@ module LitaMeterSidekick
     def list_instances(response, user=nil)
       instances = redis.get('instances')
 
-      unless instances
+      if instances
+        instances = JSON.parse(instances)
+      else
         instances = Array.new
         # FIXME use bulk endpoint
         regions.each do |region|
