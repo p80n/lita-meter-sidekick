@@ -16,6 +16,7 @@ GEM
     aws-sdk-resources (2.9.14)
       aws-sdk-core (= 2.9.14)
     aws-sigv4 (1.0.0)
+    coderay (1.1.1)
     diff-lcs (1.3)
     eventmachine (1.2.3)
     faraday (0.12.1)
@@ -47,8 +48,13 @@ GEM
       faye-websocket (>= 0.8.0)
       lita (>= 4.7.1)
       multi_json
+    method_source (0.8.2)
     multi_json (1.12.1)
     multipart-post (2.0.0)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
     puma (3.8.2)
     rack (1.6.5)
     rake (11.3.0)
@@ -69,6 +75,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
     rspec-support (3.5.0)
+    slop (3.6.0)
     thor (0.19.4)
     url_mount (0.2.1)
       rack
@@ -84,6 +91,7 @@ DEPENDENCIES
   bundler (~> 1.3)
   lita-meter-sidekick!
   lita-slack
+  pry
   rake (~> 11.2)
   rspec
 

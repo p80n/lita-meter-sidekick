@@ -1,5 +1,6 @@
 require 'aws-sdk'
 require 'lita-slack'
+require 'pry'
 
 module LitaMeterSidekick
   module EC2
@@ -26,9 +27,9 @@ module LitaMeterSidekick
       end
 
       content = render_template('instance_list', instances: instances)
-      attachment = Lita::Adapters::Slack::Attachment.new(content.gsub('```','X'), text: content)
-
-      #target = Lita::Source.new(user: response.user)
+      fallback = content.gsub('```','')
+      attachment = Lita::Adapters::Slack::Attachment.new(fallback, text: content, fallback: fallback)
+      attachment.instance_variable_set('@text', content)
 
       case robot.config.robot.adapter
       when :slack then robot.chat_service.send_attachment(response.user, attachment)
