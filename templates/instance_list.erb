@@ -6,6 +6,6 @@ Name                   Status   Type       Owner      Region      Age
 <% owner  = tags.find{|t| t.key.eql?('Owner')}&.value %>
 <% age    = ((Time.now - i.launch_time) / (24*3600)).to_i %>
 <% region = i.placement.availability_zone.chop %>
-<%="%-22s %-8s %-10s %-10s %-10s %3s days\n" % [name[0..20], i.state.name, i.instance_type, owner, region, age] %>
+<%="%-31s %-8s %-10s %-10s %-10s %3s days\n" % [name[0..30], i.state.name, i.instance_type, owner, region, age] %>
 <% end %>
 ```
