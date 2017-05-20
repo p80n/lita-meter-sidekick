@@ -20,6 +20,14 @@ describe Lita::Handlers::MeterSidekick, lita_handler: true do
       send_message("list meters")
       expect(replies.first).to match(/Name\s+ IP\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age.+/m)
     end
+    it "reponds with a list of user instances" do
+      send_message("list my instances")
+      expect(replies.first).to match(/Name\s+ IP\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age$/) #test_user won't have any instances
+    end
+    it "reponds with a list of filtered instances" do
+      send_message("list meters")
+      expect(replies.first).to match(/Name\s+ IP\s+ Status\s+ Type\s+ Owner\s+ Region\s+ Age.+/m)
+    end
 
   end
 
