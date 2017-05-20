@@ -25,11 +25,8 @@ module LitaMeterSidekick
           instances += ec2.instances.entries
         end
       end
-      redis.set('instances', instances.to_json)
-      redis.expire('instances', 60)
 
       content = render_template('instance_list', instances: instances)
-      fallback = content.gsub('```','')
 
       case robot.config.robot.adapter
       when :slack then robot.chat_service.send_file(response.user, content)
@@ -37,6 +34,7 @@ module LitaMeterSidekick
       end
 
     end
+
 
     def regions
       @regions ||= Aws::EC2::Client.new.describe_regions.data.regions.map(&:region_name)
