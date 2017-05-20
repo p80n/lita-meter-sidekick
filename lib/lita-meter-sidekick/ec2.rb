@@ -26,7 +26,7 @@ module LitaMeterSidekick
       end
 
       content = render_template('instance_list', instances: instances)
-      attachment = Lita::Adapters::Slack::Attachment.new({ text: content })
+      attachment = Lita::Adapters::Slack::Attachment.new(content.gsub('```',''), { text: content })
 
       #target = Lita::Source.new(user: response.user)
 
