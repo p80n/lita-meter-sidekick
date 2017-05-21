@@ -5,15 +5,15 @@ module Lita
       include ::LitaMeterSidekick::EC2
 
       begin
-#        name = robot
+        name = 'Lita'
 
-        route(/latest release/, :latest, help: { 'latest release' => 'Links to installers for latest version of the Meter' })
-        route(/meter latest/,   :latest, help: { 'meter latest'   => 'Links to installers for latest version of the Meter' })
+        route(/latest release/, :latest, help: { "#{name} latest release" => 'Links to installers for latest version of the Meter' })
+        route(/meter latest/,   :latest, help: { "#{name} meter latest"   => 'Links to installers for latest version of the Meter' })
 
-        route(/list instances/,    :list_instances,       help: { 'list instances' => 'List all discoverable instances in EC2' })
-        route(/list meters/,       :list_deployed_meters, help: { 'list meters' => 'List all discoverable instances of the Meter' })
-        route(/list my instances/, :list_user_instances,  help: { 'list my instances' => 'List all instances owned by messager' })
-        route(/list instances (\w+)=(\w+)/, :list_filtered_instances, help: { 'list instance TAG=VALUE' => 'List instances, filtered by tag' })
+        route(/list instances (\w+)=(\w+)/, :list_filtered_instances, help: { "#{name} list instances TAG=VALUE" => 'List instances, filtered by tag' })
+        route(/list instances/,    :list_instances,       help: { "#{name} list instances" => 'List all instances in EC2' })
+        route(/list meters/,       :list_deployed_meters, help: { "#{name} list meters" => 'List all instances of the Meter' })
+        route(/list my instances/, :list_user_instances,  help: { "#{name} list my instances" => 'List all instances owned by you' })
 
         Lita.register_handler(self)
 
