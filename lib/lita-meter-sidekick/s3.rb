@@ -10,7 +10,7 @@ module LitaMeterSidekick
       s3 = Aws::S3::Client.new
       bucket = s3.list_objects_v2(bucket: METERCTL_BUCKET)
       coreos = bucket.contents.select{|entry| entry.key.match(%r|coreos/.+/install|)}
-      warning = nil
+
       stable = coreos
                  .map{|e| e.key.split('/')[1]}
                  .reject{|entry| entry.match(/alpha|beta/)}
@@ -25,21 +25,19 @@ module LitaMeterSidekick
       # FIXME how do you get this from the SDK
       url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
 
-      stable_link = "#{url_base}/#{stable}/install"
-      unless resources_updated_for?(stable)
-        stable_link = "~#{stable_link}~"
-        warning = "*Note:* resources.6fusion.com not updated. Stable installer link will not work."
-      end
+      warning = resources_updated_for?(stable) ?
+                  nil :
+                  "*Warning:* resources.6fusion.com not updated. Stable installer link will not work."
 
       beta_link = beta.match(/#{stable}-beta/) ?
                     'There is no beta release currently in the works' :
                     "#{url_base}/#{beta}/install",
 
       response.reply(render_template('installer_links',
-                                     stable: stable_link,
+                                     stable: "#{url_base}/#{stable}/install"
                                      beta:   beta_link,
                                      alpha:  "#{url_base}/alpha/install",
-                                     warning: warning))
+                                     warning: warning ))
 
     end
 
