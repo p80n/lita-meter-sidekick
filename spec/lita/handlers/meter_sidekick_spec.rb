@@ -2,7 +2,15 @@ require "spec_helper"
 
 describe Lita::Handlers::MeterSidekick, lita_handler: true do
 
-  # routes
+
+  describe "command : deploy operations" do
+    it { is_expected.to route("deploy instance") }
+    it { is_expected.to route("instance deploy") }
+    it { is_expected.to route("deploy instance us-west-1") }
+    it { is_expected.to route("deploy instance us-west-1 t2.nano") }
+  end
+
+
   describe "command : meter operations" do
     it { is_expected.to route("meter latest") }
     it { is_expected.to route("latest release") }
@@ -22,7 +30,7 @@ describe Lita::Handlers::MeterSidekick, lita_handler: true do
     end
     it "reponds with a list of user instances" do
       send_message("list my instances")
-      expect(replies.first).to eq('No matching instances found')
+      expect(replies.first).to eq('No matching instances found') # the lita 'test user' will not have any instances
     end
     it "reponds with a list of filtered instances" do
       send_message("list instances Owner=pvaughn")
