@@ -26,7 +26,7 @@ module LitaMeterSidekick
       url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
 
       stable_link = "#{url_base}/#{stable}/install"
-      unless resources_updated_for?(version)
+      unless resources_updated_for?(stable)
         stable_link = "~#{stable_link}~"
         warning = "*Note:* resources.6fusion.com not updated. Stable installer link will not work."
       end
