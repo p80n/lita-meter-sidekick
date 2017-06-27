@@ -31,7 +31,7 @@ module LitaMeterSidekick
 
       beta_link = beta.match(/#{stable}-beta/) ?
                     'There is no beta release currently in the works' :
-                    "#{url_base}/#{beta}/install",
+                    "#{url_base}/#{beta}/install"
 
       response.reply(render_template('installer_links',
                                      stable: "#{url_base}/#{stable}/install",
