@@ -34,7 +34,7 @@ module LitaMeterSidekick
                     "#{url_base}/#{beta}/install",
 
       response.reply(render_template('installer_links',
-                                     stable: "#{url_base}/#{stable}/install"
+                                     stable: "#{url_base}/#{stable}/install",
                                      beta:   beta_link,
                                      alpha:  "#{url_base}/alpha/install",
                                      warning: warning ))
