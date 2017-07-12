@@ -33,19 +33,20 @@ module LitaMeterSidekick
                   ":warning: resources.6fusion.com not updated with latest. Stable installer will not work. :warning:"
 
       stable_command = "#{curl} #{stable_installer} | sudo bash",
-      # if stable is e.g., 0.11, and beta is 0.11-beta, there's no point in deploying 0.11-beta
+      # if stable is e.g., 0.11, and beta is 0.11-beta (i.e., no 11.1, no .12) there is no beta release underway
       beta_command = beta.match(/#{stable}-beta/) ? nil : "#{curl} #{s3_base_url}/#{beta}/install | sudo bash"
 
       response.reply(render_template('installer_links',
                                      stable: stable_command,
                                      beta:   beta_command,
-                                     alpha:  "#{curl} #{s3_base_url}/alpha/install | sudo base",
+                                     alpha:  "#{curl} #{s3_base_url}/alpha/install | sudo bash",
                                      warning: warning ))
 
     end
 
     private
     def resources_updated_for?(stable_installer)
+      p stable_installer
       url = URI.parse(stable_installer.sub('install','meterctl'))
       request = Net::HTTP.new(url.host, url.port)
       response = request.request_head(url.path)
