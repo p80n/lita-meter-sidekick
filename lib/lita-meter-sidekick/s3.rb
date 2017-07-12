@@ -5,10 +5,13 @@ module LitaMeterSidekick
   module S3
 
     METERCTL_BUCKET='6fusion-meter-dev'
-    RESOURCES_BASE_URL='https://resources.6fusion.com/meter/coreos'
 
     def latest(response)
       s3 = Aws::S3::Client.new
+      s3_base_url = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
+      resources_base_url = 'https://resources.6fusion.com/meter/coreos'
+      curl = 'curl -sSL'
+
       bucket = s3.list_objects_v2(bucket: METERCTL_BUCKET)
       coreos = bucket.contents.select{|entry| entry.key.match(%r|coreos/.+/install|)}
 
@@ -23,30 +26,31 @@ module LitaMeterSidekick
                .sort{|a,b| Gem::Version.new(b) <=> Gem::Version.new(a) }
                .first
 
-      # FIXME how do you get this from the SDK
-      s3_base_url = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
+      stable_installer = "#{resources_base_url}/#{stable}/install"
 
-      warning = resources_updated_for?(stable) ?
+      warning = resources_updated_for?(stable_installer) ?
                   nil :
                   ":warning: resources.6fusion.com not updated with latest. Stable installer will not work. :warning:"
 
-      beta_link = beta.match(/#{stable}-beta/) ?
-                    'There is no beta release currently in the works' :
-                    "#{s3_base_url}/#{beta}/install"
+      stable_command = "#{curl} #{stable_installer} | sudo bash",
+      # if stable is e.g., 0.11, and beta is 0.11-beta, there's no point in deploying 0.11-beta
+      beta_command = beta.match(/#{stable}-beta/) ? nil : "#{curl} #{s3_base_url}/#{beta}/install | sudo bash"
 
       response.reply(render_template('installer_links',
-                                     stable: "#{RESOURCES_BASE_URL}/#{stable}/install",
-                                     beta:   beta_link,
-                                     alpha:  "#{s3_base_url}/alpha/install",
+                                     stable: stable_command,
+                                     beta:   beta_command,
+                                     alpha:  "#{curl} #{s3_base_url}/alpha/install | sudo base",
                                      warning: warning ))
 
     end
 
     private
-    def resources_updated_for?(version)
-      url = URI.parse("#{RESOURCES_BASE_URL}/#{version}/meterctl")
+    def resources_updated_for?(stable_installer)
+      url = URI.parse(stable_installer.sub('install','meterctl'))
       request = Net::HTTP.new(url.host, url.port)
       response = request.request_head(url.path)
+      p response
+      p response.code
       response.code == '404'
     end
   end
