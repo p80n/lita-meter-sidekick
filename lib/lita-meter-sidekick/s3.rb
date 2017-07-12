@@ -36,6 +36,8 @@ module LitaMeterSidekick
       # if stable is e.g., 0.11, and beta is 0.11-beta (i.e., no 11.1, no .12) there is no beta release underway
       beta_command = beta.match(/#{stable}-beta/) ? nil : "#{curl} #{s3_base_url}/#{beta}/install | sudo bash"
 
+p "STable command: #{stable_command}"
+
       response.reply(render_template('installer_links',
                                      stable: stable_command,
                                      beta:   beta_command,
@@ -50,7 +52,9 @@ module LitaMeterSidekick
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       response = http.head(uri.path)
-      response.code.eql?('404')
+      p uri
+      p response
+      response.code.eql?(404)
     end
   end
 end
