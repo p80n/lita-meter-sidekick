@@ -30,7 +30,7 @@ module LitaMeterSidekick
 
       warning = resources_updated_for?(stable_installer) ?
                   nil :
-                  ":warning: resources.6fusion.com not updated with latest. Stable installer will not work. :warning:"
+                  ":warning: resources.6fusion.com not updated with latest. Stable installer will not work."
 
       stable_command = "#{curl} #{stable_installer} | sudo bash",
       # if stable is e.g., 0.11, and beta is 0.11-beta (i.e., no 11.1, no .12) there is no beta release underway
@@ -46,13 +46,11 @@ module LitaMeterSidekick
 
     private
     def resources_updated_for?(stable_installer)
-      p stable_installer
-      url = URI.parse(stable_installer.sub('install','meterctl'))
-      request = Net::HTTP.new(url.host, url.port)
-      response = request.request_head(url.path)
-      p response
-      p response.code
-      response.code == '404'
+      uri = URI.parse(stable_installer.sub('install','meterctl'))
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      response = http.head(uri.path)
+      response.code.eql?('404')
     end
   end
 end
