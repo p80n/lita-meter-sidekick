@@ -49,7 +49,7 @@ module LitaMeterSidekick
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       response = http.head(uri.path)
-      response.code.eql?(200)
+      response.code.eql?('200')
     end
   end
 end
