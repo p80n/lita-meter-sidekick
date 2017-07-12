@@ -27,16 +27,11 @@ module LitaMeterSidekick
                .first
 
       stable_installer = "#{resources_base_url}/#{stable}/install"
-
+      # if stable is e.g., 0.11, and beta is 0.11-beta (i.e., no 11.1, no .12) there is no beta release underway
+      beta_command = beta.match(/#{stable}-beta/) ? nil : "#{curl} #{s3_base_url}/#{beta}/install | sudo bash"
       warning = resources_updated_for?(stable_installer) ?
                   nil :
                   ":warning: resources.6fusion.com not updated with latest. Stable installer will not work."
-
-      stable_command = "#{curl} #{stable_installer} | sudo bash",
-      # if stable is e.g., 0.11, and beta is 0.11-beta (i.e., no 11.1, no .12) there is no beta release underway
-      beta_command = beta.match(/#{stable}-beta/) ? nil : "#{curl} #{s3_base_url}/#{beta}/install | sudo bash"
-
-p "STable command: #{stable_command}"
 
       response.reply(render_template('installer_links',
                                      stable: stable_command,
@@ -52,9 +47,7 @@ p "STable command: #{stable_command}"
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       response = http.head(uri.path)
-      p uri
-      p response
-      response.code.eql?(404)
+      response.code.eql?(200)
     end
   end
 end
