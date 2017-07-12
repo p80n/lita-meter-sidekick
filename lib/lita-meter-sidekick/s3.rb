@@ -5,6 +5,7 @@ module LitaMeterSidekick
   module S3
 
     METERCTL_BUCKET='6fusion-meter-dev'
+    RESOURCES_BASE_URL='https://resources.6fusion.com/meter/coreos'
 
     def latest(response)
       s3 = Aws::S3::Client.new
@@ -23,27 +24,27 @@ module LitaMeterSidekick
                .first
 
       # FIXME how do you get this from the SDK
-      url_base = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
+      s3_base_url = 'https://s3.amazonaws.com/6fusion-meter-dev/coreos'
 
       warning = resources_updated_for?(stable) ?
                   nil :
-                  "*Warning:* resources.6fusion.com not updated. Stable installer link will not work."
+                  "*Warning:* resources.6fusion.com not updated with latest. Stable installer will not work."
 
       beta_link = beta.match(/#{stable}-beta/) ?
                     'There is no beta release currently in the works' :
-                    "#{url_base}/#{beta}/install"
+                    "#{s3_base_url}/#{beta}/install"
 
       response.reply(render_template('installer_links',
-                                     stable: "#{url_base}/#{stable}/install",
+                                     stable: "#{RESOURCES_BASE_URL}/#{stable}/install",
                                      beta:   beta_link,
-                                     alpha:  "#{url_base}/alpha/install",
+                                     alpha:  "#{s3_base_url}/alpha/install",
                                      warning: warning ))
 
     end
 
     private
     def resources_updated_for?(version)
-      url = URI.parse("https://resources.6fusion.com/meter/coreos/v#{version}/meterctl")
+      url = URI.parse("#{RESOURCES_BASE_URL}/#{version}/meterctl")
       request = Net::HTTP.new(url.host, url.port)
       response = request.request_head(url.path)
       response.code == '404'
