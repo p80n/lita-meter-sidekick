@@ -27,11 +27,13 @@ module LitaMeterSidekick
                .first
 
       stable_installer = "#{resources_base_url}/#{stable}/install"
+      stable_command = "#{curl} #{stable_installer} | sudo bash"
       # if stable is e.g., 0.11, and beta is 0.11-beta (i.e., no 11.1, no .12) there is no beta release underway
       beta_command = beta.match(/#{stable}-beta/) ? nil : "#{curl} #{s3_base_url}/#{beta}/install | sudo bash"
       warning = resources_updated_for?(stable_installer) ?
                   nil :
                   ":warning: resources.6fusion.com not updated with latest. Stable installer will not work."
+
 
       response.reply(render_template('installer_links',
                                      stable: stable_command,
