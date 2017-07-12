@@ -28,7 +28,7 @@ module LitaMeterSidekick
 
       warning = resources_updated_for?(stable) ?
                   nil :
-                  "*Warning:* resources.6fusion.com not updated with latest. Stable installer will not work."
+                  ":warning: resources.6fusion.com not updated with latest. Stable installer will not work. :warning:"
 
       beta_link = beta.match(/#{stable}-beta/) ?
                     'There is no beta release currently in the works' :
