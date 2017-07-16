@@ -1,3 +1,4 @@
+require 'net/http'
 require 'aws-sdk'
 require 'lita-slack'
 
@@ -5,8 +6,6 @@ module LitaMeterSidekick
   module EC2
 
     def deploy_instance(response)
-
-
 
       # instance_type
       # key_name
@@ -16,31 +15,40 @@ module LitaMeterSidekick
       # placement { availability_zone:
       # block_device_mappings {
       # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
-      options = {}
-      puts response.matches[0]
-      response.matches[0].each do |arg|
-        puts "option: #{arg}"
-#        if arg.match(/[a-z]\d+\.
-      end
 
-      ec2 = Aws::EC2::Resource.new(region: 'us-east-2')
+      options = resonse.matches[0]
 
-      # instance = ec2.create_instances({
-      #                                   image_id: coreos_image_id,
-      #                                   min_count: 1,
-      #                                   max_count: 1,
-      #                                   # key_name: 'MyGroovyKeyPair',
-      #                                   # security_group_ids: ['SECURITY_GROUP_ID'],
+      az = availability_zone(options)
+      ec2 = Aws::EC2::Resource.new(region: az.chop)
+
+#irb(main):045:0> ec2.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}
+
+      instance = ec2.create_instances({ image_id: coreos_image_id,
+                                        min_count: 1,
+                                        max_count: 1,
+                                        key_name: ssh_key(az),
+                                        security_group_ids: security_group(az),
+                                        user_data: '',
       #                                   # user_data: encoded_script,
-      #                                   # instance_type: 't2.micro',
-      #                                   # placement: {
-      #                                   #   availability_zone: 'us-west-2a'
-      #                                   # },
+                                        instance_type: instance_type(options),
+                                        placement: { availability_zone: az },
       #                                   # subnet_id: 'SUBNET_ID',
       #                                   # iam_instance_profile: {
       #                                   #   arn: 'arn:aws:iam::' + 'ACCOUNT_ID' + ':instance-profile/aws-opsworks-ec2-role'
       #                                   # }
-      #                                 })
+                                      })
+
+      # Wait for the instance to be created, running, and passed status checks
+      ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance[0].id]})
+
+      # Name the instance 'MyGroovyInstance' and give it the Group tag 'MyGroovyGroup'
+      instance.create_tags({ tags: [{ key: 'Name', value: 'MyGroovyInstance' },
+                                    { key: 'CostCenter', value: 'development' },
+                                    { key: 'Owner', value: aws_user(response.user.mention_name) },
+                                    { key: 'DeployedBy', value: 'lita' },
+                                    { key: 'ApplicationRole', value: '6fusion-meter' }
+                                   ]
+                           })
 
     end
 
@@ -75,22 +83,42 @@ module LitaMeterSidekick
         else robot.send_message(response.user, content)
         end
       end
-
     end
 
-    # private
-    def instance_options(str)
-        { instance_type: get_instance_type(str),
-          placement: { availability_zone: get_availability_zone(str) }
-        }
+    private
+    def security_group(az)
+      client = Aws::EC2::Client.new(region: az.chop)
+      groups = client
+                 .describe_security_groups
+                 .security_groups
+                 .find{|sg|
+                   sg.ip_permissions
+                     .find{|ipp|
+                       ipp.to_port.eql?(22) &&
+                         ipp.ip_ranges
+                           .find{|ipr| ipr.cidr_ip.eql?(office_ip) } } }
+
+      groups.sort{|a,b| a.ip_permissions.size <=> b.ip_permissions.size}.first.group_id
     end
 
-    def get_instance_type(str)
+
+    def ssh_key(az)
+      client = Aws::EC2::Client.new(region: az.chop)
+      client.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}.key_name
+    end
+
+    # def instance_options(str)
+    #     { instance_type: get_instance_type(str),
+    #       placement: { availability_zone: get_availability_zone(str) }
+    #     }
+    # end
+
+    def instance_type(str)
       md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|small|medium|large|xlarge))/)
       md ? md[1] : 't2.xlarge'
     end
 
-    def get_availability_zone(str)
+    def availability_zone(str)
 
       if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
         puts "md1: #{md[1]}"
@@ -116,9 +144,9 @@ module LitaMeterSidekick
           raise("Availability Zone #{az} not found")
         end
       elsif md = str.match(/(california|canada|ohio|oregon|virginia)/)
-
+        raise('not yet supported')
       else
-        availability_zones.keys.reject{|az| az.match(/us-east-1.*/)}.sample
+        availability_zones.keys.reject{|az| az.match(/us-east-2.*/)}.sample
       end
 
     end
@@ -134,20 +162,39 @@ module LitaMeterSidekick
 
     # FIXME put in redis, occasionally expire
     def availability_zones
-      az = redis.get('availability_zone')
-      @availability_zones ||= begin
-                                h = {}
-                                regions.each do |region|
-                                  Aws::EC2::Client.new(region: region).describe_availability_zones.data.availability_zones
-                                    .each{|az| h[az.zone_name] = { region_name: az.region_name, state: az.state } }
-                                end
-                                h
-                              end
+      az = redis.get('availability_zones')
+      if az
+        JSON::parse(az)
+      else
+        begin
+          h = {}
+          regions.each do |region|
+            Aws::EC2::Client.new(region: region)
+              .describe_availability_zones.data.availability_zones
+              .each{|az| h[az.zone_name] = { region_name: az.region_name, state: az.state } }
+          end
+          redis.set('availability_zones', h.to_json)
+          redis.expire('availabity_zones', 24 * 7 * 3600)
+          h
+        end
     end
 
     def regions
       # expire occasionally
       @regions ||= Aws::EC2::Client.new.describe_regions.data.regions.map(&:region_name)
+    end
+
+    def office_ip
+      sg = Net::HTTP.get('http://instance-data/latest/meta-data/security-groups')
+      client = Aws::EC2::Client.new
+      @office_ip ||= client
+                       .describe_security_groups
+                       .security_groups
+                       .map(&:ip_permissions)
+                       .find{|x| x.from_port == 22}
+                       .ip_ranges
+                       .first
+                       .cidr_ip
     end
 
     def coreos_image_id
