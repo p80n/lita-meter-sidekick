@@ -177,6 +177,7 @@ module LitaMeterSidekick
           redis.expire('availabity_zones', 24 * 7 * 3600)
           h
         end
+      end
     end
 
     def regions
