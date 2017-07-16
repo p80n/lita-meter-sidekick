@@ -5,6 +5,9 @@ module LitaMeterSidekick
   module EC2
 
     def deploy_instance(response)
+
+
+
       # instance_type
       # key_name
       # image_id
@@ -13,10 +16,31 @@ module LitaMeterSidekick
       # placement { availability_zone:
       # block_device_mappings {
       # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
+      options = {}
+      puts response.matches
+ #     response.matches[0].each do |arg|
+#        puts "option: #{arg}"
+#        if arg.match(/[a-z]\d+\.
+  #    end
 
-      response.matches[0].each{|arg|
+      ec2 = Aws::EC2::Resource.new(region: 'us-east-2')
 
-      }
+      # instance = ec2.create_instances({
+      #                                   image_id: coreos_image_id,
+      #                                   min_count: 1,
+      #                                   max_count: 1,
+      #                                   # key_name: 'MyGroovyKeyPair',
+      #                                   # security_group_ids: ['SECURITY_GROUP_ID'],
+      #                                   # user_data: encoded_script,
+      #                                   # instance_type: 't2.micro',
+      #                                   # placement: {
+      #                                   #   availability_zone: 'us-west-2a'
+      #                                   # },
+      #                                   # subnet_id: 'SUBNET_ID',
+      #                                   # iam_instance_profile: {
+      #                                   #   arn: 'arn:aws:iam::' + 'ACCOUNT_ID' + ':instance-profile/aws-opsworks-ec2-role'
+      #                                   # }
+      #                                 })
 
     end
 
@@ -62,7 +86,7 @@ module LitaMeterSidekick
     end
 
     def get_instance_type(str)
-      md = str.match(/(\p{L}{1,2}\d\.\d?(?:small|medium|large|xlarge))/)
+      md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|small|medium|large|xlarge))/)
       md ? md[1] : 't2.xlarge'
     end
 
@@ -101,11 +125,12 @@ module LitaMeterSidekick
 
 
     def aws_user(mention_name)
-      mapping = { 'peyton' => 'pvaughn',
+      mapping = { 'peyton'  => 'pvaughn',
                   'd-vison' => 'dseymour',
-                  'lackey' => 'rlackey' }
+                  'lackey'  => 'rlackey' }
       mapping[response.user.mention_name] || response.user.mention_name
     end
+
 
     # FIXME put in redis, occasionally expire
     def availability_zones
@@ -121,7 +146,21 @@ module LitaMeterSidekick
     end
 
     def regions
+      # expire occasionally
       @regions ||= Aws::EC2::Client.new.describe_regions.data.regions.map(&:region_name)
+    end
+
+    def coreos_image_id
+      redis.get('coreos_image_id') || begin
+                                        images = Aws::EC2::Client.new(region: region)
+                                                   .describe_images(owners: ['aws-marketplace'],
+                                                                    filters: [{name: 'virtualization-type', values: ['hvm']},
+                                                                              {name: 'description', values: ['CoreOS*']}])
+                                        latest = images.sort_by(&:creation_date).last
+                                        redis.set('coreos_image_id', latest.image_id)
+                                        redis.expire('coreos_image_id', 24 * 7 * 3600)
+                                        latest
+                                      end
     end
 
   end
