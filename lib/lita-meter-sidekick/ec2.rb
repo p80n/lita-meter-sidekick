@@ -17,11 +17,11 @@ module LitaMeterSidekick
       # block_device_mappings {
       # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
       options = {}
-      puts response.matches
- #     response.matches[0].each do |arg|
-#        puts "option: #{arg}"
+      puts response.matches[0]
+      response.matches[0].each do |arg|
+        puts "option: #{arg}"
 #        if arg.match(/[a-z]\d+\.
-  #    end
+      end
 
       ec2 = Aws::EC2::Resource.new(region: 'us-east-2')
 
