@@ -192,7 +192,8 @@ module LitaMeterSidekick
 
     def office_ip
       puts __LINE__
-      sg = Net::HTTP.get(URI.parse('http://instance-data/latest/meta-data/security-groups'))
+      # on the host, this IP is accessible at http://instance-data. Sadly, docker DNS doesn't seem to pick this up
+      sg = Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/security-groups'))
       puts __LINE__
       client = Aws::EC2::Client.new
       puts __LINE__
