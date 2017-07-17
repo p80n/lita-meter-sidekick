@@ -156,7 +156,7 @@ module LitaMeterSidekick
       elsif md = str.match(/(california|canada|ohio|oregon|virginia)/)
         raise('not yet supported')
       else
-        availability_zones.keys.reject{|az| az.match(/us-east-2.*/)}.sample
+        availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}.reject{|az| az.match(/us-east-1/)}.sample
       end
 
     end

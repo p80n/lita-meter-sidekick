@@ -4,9 +4,16 @@ module Lita
       include ::LitaMeterSidekick::S3
       include ::LitaMeterSidekick::EC2
 
-      begin
+      def render_execption(error)
+
+      end
+
+      # begin
         name = 'lita'
-        Lita.configure{|config| name = config.robot.name}
+        Lita.configure{|config|
+          name = config.robot.name
+          config.robot.error_handler = lambda { response.reply(render_template('exception', exception: error)) }
+        }
 
         route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
         route(/meter latest/,   :latest, help: { "#{name}: meter latest"   => 'Links to installers for latest version of the Meter' })
@@ -25,11 +32,10 @@ module Lita
 
         Lita.register_handler(self)
 
-      rescue => e
-        response.reply(render_template('exception', exception: e))
-        log e.message
-        log e.backtrace.join("\n")
-      end
+      # rescue => e
+      #   log e.message
+      #   log e.backtrace.join("\n")
+      # end
     end
   end
 end
