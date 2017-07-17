@@ -26,14 +26,14 @@ module LitaMeterSidekick
       ec2 = Aws::EC2::Resource.new(region: az.chop)
       puts __LINE__
 #irb(main):045:0> ec2.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}
-      puts coreos_image_id(az.chop)
+      puts coreos_image_id(az.chop, response)
       puts __LINE__
       puts ssh_key(az)
       puts __LINE__
       puts securit_group(az)
       puts __LINE__
       puts instance_type(options)
-      instance = ec2.create_instances({ image_id: coreos_image_id(az.chop),
+      instance = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
                                         min_count: 1,
                                         max_count: 1,
                                         key_name: ssh_key(az),
@@ -208,12 +208,12 @@ module LitaMeterSidekick
                        .cidr_ip
     end
 
-    def coreos_image_id(region)
+    def coreos_image_id(region, response)
       redis.hget('coreos_image_id', region) ||
         begin
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment.")
           result = Aws::EC2::Client.new(region: region)
-                                   .describe_images(owners: ['aws-marketplace'],
+                                   .describe_images(owners:  ['aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
                                                               {name: 'description', values: ['CoreOS*']}])
           latest = result.images.sort_by(&:creation_date).last
