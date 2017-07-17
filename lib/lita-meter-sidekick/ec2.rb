@@ -200,6 +200,7 @@ module LitaMeterSidekick
                        .security_groups
                        .map(&:ip_permissions)
                        .find{|x| x.find{|y| y.from_port == 22} }  # fix this
+                       .first
                        .ip_ranges
                        .first
                        .cidr_ip
