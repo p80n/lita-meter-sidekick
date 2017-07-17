@@ -8,11 +8,11 @@ module Lita
 
       end
 
-      # begin
+      begin
         name = 'lita'
         Lita.configure{|config|
           name = config.robot.name
-          config.robot.error_handler = lambda { response.reply(render_template('exception', exception: error)) }
+          config.robot.error_handler = lambda {|error| response.reply(render_template('exception', exception: error)) }
         }
 
         route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
@@ -32,10 +32,10 @@ module Lita
 
         Lita.register_handler(self)
 
-      # rescue => e
-      #   log e.message
-      #   log e.backtrace.join("\n")
-      # end
+      rescue => e
+        log e.message
+        log e.backtrace.join("\n")
+      end
     end
   end
 end
