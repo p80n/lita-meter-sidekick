@@ -19,19 +19,6 @@ module LitaMeterSidekick
       begin
 
       options = response.matches[0]
-      puts options
-      puts __LINE__
-      az = availability_zone(options)
-      puts az
-      puts az.class
-      puts __LINE__
-      ec2 = Aws::EC2::Resource.new(region: az.chop)
-      puts __LINE__
-#irb(main):045:0> ec2.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}
-      puts coreos_image_id(az.chop, response)
-      puts __LINE__
-      puts ssh_key(az)
-      puts __LINE__
       puts security_group(az)
       puts __LINE__
       puts instance_type(options)
@@ -203,8 +190,11 @@ module LitaMeterSidekick
     end
 
     def office_ip
+      puts __LINE__
       sg = Net::HTTP.get('http://instance-data/latest/meta-data/security-groups')
+      puts __LINE__
       client = Aws::EC2::Client.new
+      puts __LINE__
       @office_ip ||= client
                        .describe_security_groups
                        .security_groups
