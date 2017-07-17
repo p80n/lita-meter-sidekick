@@ -21,6 +21,7 @@ module LitaMeterSidekick
       puts __LINE__
       az = availability_zone(options)
       puts az
+      puts az.class
       puts __LINE__
       ec2 = Aws::EC2::Resource.new(region: az.chop)
 
@@ -32,7 +33,7 @@ module LitaMeterSidekick
       puts securit_group(az)
       puts __LINE__
       puts instance_type(options)
-      instance = ec2.create_instances({ image_id: coreos_image_id,
+      instance = ec2.create_instances({ image_id: coreos_image_id(az.chop),
                                         min_count: 1,
                                         max_count: 1,
                                         key_name: ssh_key(az),
@@ -207,12 +208,12 @@ module LitaMeterSidekick
                        .cidr_ip
     end
 
-    def coreos_image_id
+    def coreos_image_id(region)
       redis.get('coreos_image_id') || begin
                                         images = Aws::EC2::Client.new(region: region)
-                                                   .describe_images(owners: ['aws-marketplace'],
-                                                                    filters: [{name: 'virtualization-type', values: ['hvm']},
-                                                                              {name: 'description', values: ['CoreOS*']}])
+                                                                 .describe_images(owners: ['aws-marketplace'],
+                                                                                  filters: [{name: 'virtualization-type', values: ['hvm']},
+                                                                                            {name: 'description', values: ['CoreOS*']}])
                                         latest = images.sort_by(&:creation_date).last
                                         redis.set('coreos_image_id', latest.image_id)
                                         redis.expire('coreos_image_id', 24 * 7 * 3600)
