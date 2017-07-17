@@ -195,7 +195,6 @@ module LitaMeterSidekick
       sg = Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/security-groups'))
 
       client = Aws::EC2::Client.new
-      puts client.describe_security_groups.security
       @office_ip ||= client
                        .describe_security_groups
                        .security_groups
