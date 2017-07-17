@@ -18,12 +18,11 @@ module LitaMeterSidekick
 
       begin
 
+        options = response.matches[0]
         az = availability_zone(options)
-
-      options = response.matches[0]
-      puts security_group(az)
-      puts __LINE__
-      puts instance_type(options)
+        puts security_group(az)
+        puts __LINE__
+        puts instance_type(options)
       instance = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
                                         min_count: 1,
                                         max_count: 1,
