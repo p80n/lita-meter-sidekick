@@ -16,7 +16,7 @@ module LitaMeterSidekick
       # block_device_mappings {
       # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
 
-      options = resonse.matches[0]
+      options = response.matches[0]
       puts options
       puts __LINE__
       az = availability_zone(options)
