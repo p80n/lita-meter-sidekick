@@ -18,6 +18,8 @@ module LitaMeterSidekick
 
       begin
 
+        az = availability_zone(options)
+
       options = response.matches[0]
       puts security_group(az)
       puts __LINE__
