@@ -26,7 +26,7 @@ module LitaMeterSidekick
       ec2 = Aws::EC2::Resource.new(region: az.chop)
 
 #irb(main):045:0> ec2.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}
-      puts coreos_image_id
+      puts coreos_image_id(az.chop)
       puts __LINE__
       puts ssh_key(az)
       puts __LINE__
