@@ -222,7 +222,7 @@ module LitaMeterSidekick
           latest = result.images.sort_by(&:creation_date).last
           redis.hset('coreos_image_id', region, latest.image_id)
           redis.expire('coreos_image_id', 24 * 7 * 3600)
-          latest
+          latest.image_id
         end
     end
 
