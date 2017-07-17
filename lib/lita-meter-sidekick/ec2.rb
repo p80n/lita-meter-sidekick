@@ -210,11 +210,11 @@ module LitaMeterSidekick
 
     def coreos_image_id(region)
       redis.get('coreos_image_id') || begin
-                                        images = Aws::EC2::Client.new(region: region)
-                                                                 .describe_images(owners: ['aws-marketplace'],
+                                        results = Aws::EC2::Client.new(region: region)
+                                                                  .describe_images(owners: ['aws-marketplace'],
                                                                                   filters: [{name: 'virtualization-type', values: ['hvm']},
                                                                                             {name: 'description', values: ['CoreOS*']}])
-                                        latest = images.sort_by(&:creation_date).last
+                                        latest = result.images.sort_by(&:creation_date).last
                                         redis.set('coreos_image_id', latest.image_id)
                                         redis.expire('coreos_image_id', 24 * 7 * 3600)
                                         latest
