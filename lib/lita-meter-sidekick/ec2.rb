@@ -191,17 +191,16 @@ module LitaMeterSidekick
     end
 
     def office_ip
-      puts __LINE__
-      # on the host, this IP is accessible at http://instance-data. Sadly, docker DNS doesn't seem to pick this up
+      # on the host, this IP is accessible at http://instance-data. Sadly, docker DNS doesn't seem to pick this up, so it's not available in the conatiner
       sg = Net::HTTP.get(URI.parse('http://169.254.169.254/latest/meta-data/security-groups'))
-      puts __LINE__
+
       client = Aws::EC2::Client.new
-      puts __LINE__
+      puts client.describe_security_groups.security
       @office_ip ||= client
                        .describe_security_groups
                        .security_groups
                        .map(&:ip_permissions)
-                       .find{|x| x.from_port == 22}
+                       .find{|x| x.find{|y| y.from_port == 22} }  # fix this
                        .ip_ranges
                        .first
                        .cidr_ip
