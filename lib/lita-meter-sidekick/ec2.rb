@@ -198,11 +198,11 @@ module LitaMeterSidekick
       @office_ip ||= client
                        .describe_security_groups
                        .security_groups
-                       .map(&:ip_permissions)
-                       .find{|x| x.find{|y| y.from_port == 22} }  # fix this
-                       .first
+                       .find{|sg| sg.group_name.eql?('lita-ports')}
+                       .ip_permissions
+                       .find{|ipp| ipp.from_port == 22}
                        .ip_ranges
-                       .first
+                       .first      # first/last - doesn't matter - ssh should only be open to the office IP
                        .cidr_ip
     end
 
