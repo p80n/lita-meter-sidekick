@@ -16,6 +16,8 @@ module LitaMeterSidekick
       # block_device_mappings {
       # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
 
+      begin
+
       options = response.matches[0]
       puts options
       puts __LINE__
@@ -60,6 +62,11 @@ module LitaMeterSidekick
                                    ]
                            })
       puts __LINE__
+      rescue => e
+        response.reply(render_template('exception', exception: e.message))
+      end
+
+
     end
 
     ####################################################################################################

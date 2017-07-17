@@ -7,12 +7,7 @@ module Lita
       begin
         name = 'lita'
         Lita.configure{|config|
-          name = config.robot.name
-          config.robot.error_handler = lambda {|error|
-            target = Source.new(user: 'lita')
-            robot.send_message(target, render_template('exception', exception: error))
-          }
-        }
+          name = config.robot.name }
 
         route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
         route(/meter latest/,   :latest, help: { "#{name}: meter latest"   => 'Links to installers for latest version of the Meter' })
