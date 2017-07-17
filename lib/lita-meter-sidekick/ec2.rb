@@ -36,25 +36,28 @@ module LitaMeterSidekick
                                           # iam_instance_profile: {
                                           #   arn: 'arn:aws:iam::' + 'ACCOUNT_ID' + ':instance-profile/aws-opsworks-ec2-role' }
                                         })
-        puts __LINE__
-        spinner = Thread.new {
-          sleep 10
-          response.reply('Waiting for instance #{instance[0].id} to pass checks...') }
-        puts __LINE__
+
         # Wait for the instance to be created, running, and passed status checks
-        ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance[0].id]})
-        puts __LINE__
-        spinner.kill
+        ec2.client.wait_until(:instance_running, {instance_ids: [instance[0].id]}){|w|
+          w.interval = 10
+          w.max_attempts = 100
+          response.reply("Waiting for instance #{instance[0].id} to spin up...") }
+
+        response.reply("Tagging new instance")
 
         # Name the instance 'MyGroovyInstance' and give it the Group tag 'MyGroovyGroup'
         instance.create_tags({ tags: [{ key: 'Name', value: 'MyGroovyInstance' },
                                       { key: 'CostCenter', value: 'development' },
-                                      { key: 'Owner', value: aws_user(response.user.mention_name) },
+                                      { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                       { key: 'DeployedBy', value: 'lita' },
                                       { key: 'ApplicationRole', value: '6fusion-meter' }
                                      ]
                              })
-        puts __LINE__
+
+
+
+
+
       rescue => e
         response.reply(render_template('exception', exception: e))
       end
@@ -162,11 +165,11 @@ module LitaMeterSidekick
     end
 
 
-    def aws_user(mention_name)
+    def aws_user_for(slack_user)
       mapping = { 'peyton'  => 'pvaughn',
                   'd-vison' => 'dseymour',
                   'lackey'  => 'rlackey' }
-      mapping[response.user.mention_name] || response.user.mention_name
+      mapping[slack_user] || slack_user
     end
 
 
