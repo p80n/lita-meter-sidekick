@@ -17,12 +17,21 @@ module LitaMeterSidekick
       # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
 
       options = resonse.matches[0]
-
+      puts options
+      puts __LINE__
       az = availability_zone(options)
+      puts az
+      puts __LINE__
       ec2 = Aws::EC2::Resource.new(region: az.chop)
 
 #irb(main):045:0> ec2.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}
-
+      puts coreos_image_id
+      puts __LINE__
+      puts ssh_key(az)
+      puts __LINE__
+      puts securit_group(az)
+      puts __LINE__
+      puts instance_type(options)
       instance = ec2.create_instances({ image_id: coreos_image_id,
                                         min_count: 1,
                                         max_count: 1,
@@ -37,10 +46,10 @@ module LitaMeterSidekick
       #                                   #   arn: 'arn:aws:iam::' + 'ACCOUNT_ID' + ':instance-profile/aws-opsworks-ec2-role'
       #                                   # }
                                       })
-
+      puts __LINE__
       # Wait for the instance to be created, running, and passed status checks
       ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance[0].id]})
-
+      puts __LINE__
       # Name the instance 'MyGroovyInstance' and give it the Group tag 'MyGroovyGroup'
       instance.create_tags({ tags: [{ key: 'Name', value: 'MyGroovyInstance' },
                                     { key: 'CostCenter', value: 'development' },
@@ -49,7 +58,7 @@ module LitaMeterSidekick
                                     { key: 'ApplicationRole', value: '6fusion-meter' }
                                    ]
                            })
-
+      puts __LINE__
     end
 
     ####################################################################################################
