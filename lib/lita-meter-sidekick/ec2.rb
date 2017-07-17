@@ -192,7 +192,7 @@ module LitaMeterSidekick
 
     def office_ip
       puts __LINE__
-      sg = Net::HTTP.get('http://instance-data/latest/meta-data/security-groups')
+      sg = Net::HTTP.get(URI.parse('http://instance-data/latest/meta-data/security-groups'))
       puts __LINE__
       client = Aws::EC2::Client.new
       puts __LINE__
