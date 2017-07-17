@@ -24,7 +24,7 @@ module LitaMeterSidekick
       puts az.class
       puts __LINE__
       ec2 = Aws::EC2::Resource.new(region: az.chop)
-
+      puts __LINE__
 #irb(main):045:0> ec2.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}
       puts coreos_image_id(az.chop)
       puts __LINE__
@@ -209,16 +209,18 @@ module LitaMeterSidekick
     end
 
     def coreos_image_id(region)
-      redis.get('coreos_image_id') || begin
-                                        results = Aws::EC2::Client.new(region: region)
-                                                                  .describe_images(owners: ['aws-marketplace'],
-                                                                                  filters: [{name: 'virtualization-type', values: ['hvm']},
-                                                                                            {name: 'description', values: ['CoreOS*']}])
-                                        latest = result.images.sort_by(&:creation_date).last
-                                        redis.set('coreos_image_id', latest.image_id)
-                                        redis.expire('coreos_image_id', 24 * 7 * 3600)
-                                        latest
-                                      end
+      redis.hget('coreos_image_id', region) ||
+        begin
+          response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment.")
+          result = Aws::EC2::Client.new(region: region)
+                                   .describe_images(owners: ['aws-marketplace'],
+                                                    filters: [{name: 'virtualization-type', values: ['hvm']},
+                                                              {name: 'description', values: ['CoreOS*']}])
+          latest = result.images.sort_by(&:creation_date).last
+          redis.hset('coreos_image_id', region, latest.image_id)
+          redis.expire('coreos_image_id', 24 * 7 * 3600)
+          latest
+        end
     end
 
   end
