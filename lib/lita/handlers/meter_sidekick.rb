@@ -4,15 +4,14 @@ module Lita
       include ::LitaMeterSidekick::S3
       include ::LitaMeterSidekick::EC2
 
-      def render_execption(error)
-
-      end
-
       begin
         name = 'lita'
         Lita.configure{|config|
           name = config.robot.name
-          config.robot.error_handler = lambda {|error| response.reply(render_template('exception', exception: error)) }
+          config.robot.error_handler = lambda {|error|
+            target = Source.new(user: 'lita')
+            robot.send_message(target, render_template('exception', exception: error))
+          }
         }
 
         route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
