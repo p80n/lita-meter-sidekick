@@ -98,10 +98,9 @@ module LitaMeterSidekick
                  .security_groups
                  .find{|sg|
                    sg.ip_permissions
-                     .find{|ipp|
-                       ipp.to_port.eql?(22) &&
-                         ipp.ip_ranges
-                           .find{|ipr| ipr.cidr_ip.eql?(office_ip) } } }
+                     .select{|ipp|
+                       ipp.ip_ranges
+                         .find{|ipr| ipr.cidr_ip.eql?(office_ip) } } }
 
       groups.sort{|a,b| a.ip_permissions.size <=> b.ip_permissions.size}.first.group_id
     end
