@@ -96,12 +96,13 @@ module LitaMeterSidekick
       groups = client
                  .describe_security_groups
                  .security_groups
-                 .find{|sg|
+                 .select{|sg|
                    sg.ip_permissions
-                     .select{|ipp|
+                     .find{|ipp|
                        ipp.ip_ranges
                          .find{|ipr| ipr.cidr_ip.eql?(office_ip) } } }
 
+      # Go with teh most restrictive security group open to the office IP. TODO: ^^ make sure there are no port restrictions? or that 22 and 443 are open?
       groups.sort{|a,b| a.ip_permissions.size <=> b.ip_permissions.size}.first.group_id
     end
 
