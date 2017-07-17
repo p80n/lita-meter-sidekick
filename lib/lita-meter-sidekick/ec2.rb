@@ -63,7 +63,7 @@ module LitaMeterSidekick
                            })
       puts __LINE__
       rescue => e
-        response.reply(render_template('exception', exception: e.message))
+        response.reply(render_template('exception', exception: e))
       end
 
 
