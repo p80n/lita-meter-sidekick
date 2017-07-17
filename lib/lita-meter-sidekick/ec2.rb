@@ -30,7 +30,7 @@ module LitaMeterSidekick
       puts __LINE__
       puts ssh_key(az)
       puts __LINE__
-      puts securit_group(az)
+      puts security_group(az)
       puts __LINE__
       puts instance_type(options)
       instance = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
@@ -211,7 +211,7 @@ module LitaMeterSidekick
     def coreos_image_id(region, response)
       redis.hget('coreos_image_id', region) ||
         begin
-          response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment.")
+          response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
           result = Aws::EC2::Client.new(region: region)
                                    .describe_images(owners:  ['aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
