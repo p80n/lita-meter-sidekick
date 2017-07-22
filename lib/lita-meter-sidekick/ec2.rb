@@ -8,22 +8,20 @@ module LitaMeterSidekick
     def deploy_instance(response)
 
       begin
-        options = response.matches[0]
+        options = response.matches[0].join(' ')
         az = availability_zone(options)
 
         response.reply("Deploying instance to #{az.chop}...")
         ec2 = Aws::EC2::Resource.new(region: az.chop)
-        instance = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
+        instances = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
                                           min_count: 1,
                                           max_count: 1,
                                           key_name: ssh_key(az),
                                           security_group_ids: [security_group(az)],
-                                          user_data: '',
-                                          # user_data: encoded_script,
+                                          user_data: render_template('user_data.sh', version: 'alpha'),
                                           instance_type: instance_type(options),
                                           placement: { availability_zone: az },
-                                          # iam_instance_profile: {
-                                          #   arn: 'arn:aws:iam::' + 'ACCOUNT_ID' + ':instance-profile/aws-opsworks-ec2-role' }
+                                          iam_instance_profile: { arn: 'arn:aws:iam::499008556223:role/ssm-full-access' }
                                         })
 
         # Wait for the instance to be created, running, and passed status checks
@@ -32,23 +30,21 @@ module LitaMeterSidekick
           w.max_attempts = 100
           response.reply("Waiting for instance #{instance[0].id} to spin up...") }
 
-        response.reply("Tagging new instance")
+        response.reply("Tagging your instance")
 
         # Name the instance 'MyGroovyInstance' and give it the Group tag 'MyGroovyGroup'
-        instance.create_tags({ tags: [{ key: 'Name', value: '6fusion Meter' },
-                                      { key: 'CostCenter', value: 'development' },
-                                      { key: 'Owner', value: aws_user_for(response.user.mention_name) },
-                                      { key: 'DeployedBy', value: 'lita' },
-                                      { key: 'ApplicationRole', value: '6fusion-meter' }
-                                     ]
-                             })
+        instances.batch_create_tags({ tags: [{ key: 'Name', value: '6fusion Meter' },
+                                             { key: 'CostCenter', value: 'development' },
+                                             { key: 'Owner', value: aws_user_for(response.user.mention_name) },
+                                             { key: 'DeployedBy', value: 'lita' },
+                                             { key: 'ApplicationRole', value: '6fusion-meter' }
+                                            ]
+                                    })
 
-      # reply with IP
+        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_dns_name}")
+
       # summary of meters you own
       # attached with kubeconfig
-
-
-
 
       rescue => e
         response.reply(render_template('exception', exception: e))
