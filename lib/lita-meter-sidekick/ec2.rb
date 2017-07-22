@@ -13,6 +13,8 @@ p response.matches[0][0]
         az = availability_zone(options)
 
         response.reply("Deploying instance to #{az.chop}...")
+        puts "user data:"
+        puts render_template('user_data.sh', version: 'alpha')
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instances = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
                                           min_count: 1,
