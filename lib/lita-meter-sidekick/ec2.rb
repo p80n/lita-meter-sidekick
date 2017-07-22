@@ -7,17 +7,7 @@ module LitaMeterSidekick
 
     def deploy_instance(response)
 
-      # instance_type
-      # key_name
-      # image_id
-      # security_groups / security_group_ids
-      # user_data
-      # placement { availability_zone:
-      # block_device_mappings {
-      # tag_specifications { [  { resource_tyep: instance, tags: [ {key: "", value: "" } ] } ] }
-
       begin
-
         options = response.matches[0]
         az = availability_zone(options)
 
@@ -32,7 +22,6 @@ module LitaMeterSidekick
                                           # user_data: encoded_script,
                                           instance_type: instance_type(options),
                                           placement: { availability_zone: az },
-                                          # subnet_id: 'SUBNET_ID',
                                           # iam_instance_profile: {
                                           #   arn: 'arn:aws:iam::' + 'ACCOUNT_ID' + ':instance-profile/aws-opsworks-ec2-role' }
                                         })
@@ -46,7 +35,7 @@ module LitaMeterSidekick
         response.reply("Tagging new instance")
 
         # Name the instance 'MyGroovyInstance' and give it the Group tag 'MyGroovyGroup'
-        instance.create_tags({ tags: [{ key: 'Name', value: 'MyGroovyInstance' },
+        instance.create_tags({ tags: [{ key: 'Name', value: '6fusion Meter' },
                                       { key: 'CostCenter', value: 'development' },
                                       { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                       { key: 'DeployedBy', value: 'lita' },
@@ -54,6 +43,9 @@ module LitaMeterSidekick
                                      ]
                              })
 
+      # reply with IP
+      # summary of meters you own
+      # attached with kubeconfig
 
 
 
@@ -120,13 +112,8 @@ module LitaMeterSidekick
       client.describe_key_pairs.key_pairs.find{|key_pair| key_pair.key_name.match(/dev-6fusion-dev/)}.key_name
     end
 
-    # def instance_options(str)
-    #     { instance_type: get_instance_type(str),
-    #       placement: { availability_zone: get_availability_zone(str) }
-    #     }
-    # end
-
     def instance_type(str)
+      puts "Checking #{str} for instance type"
       md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|small|medium|large|xlarge))/)
       md ? md[1] : 't2.xlarge'
     end
@@ -156,8 +143,17 @@ module LitaMeterSidekick
         else
           raise("Availability Zone #{az} not found")
         end
-      elsif md = str.match(/(california|canada|ohio|oregon|virginia)/)
-        raise('not yet supported')
+      elsif md = str.downcase.match(/(california|canada|ohio|oregon|virginia)/)
+        region = case md[1]
+                 when 'california' then 'us-west-1'
+                 when 'canada' then 'ca-central-1'
+                 when 'ohio' then 'us-east-2'
+                 when 'oregon' then 'us-west-2'
+                 when 'virginia' then 'us-east-1'
+                 else 'us-east-2'
+                 end
+        # pick a random az from the region
+        availability_zones.select{|az,value| value.region.eql?(region)}.sample.key
       else
         availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}.reject{|az| az.match(/us-east-1/)}.sample
       end
