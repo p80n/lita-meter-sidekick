@@ -50,7 +50,7 @@ module LitaMeterSidekick
 
         resp = ec2.client.get_console_output({ instance_id: instances.first.id })
 p resp
-        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_dns_name}")
+        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_dns_name}`")
 
       # summary of meters you own
       # attached with kubeconfig
