@@ -153,7 +153,8 @@ p response.matches[0][0]
                  end
         # pick a random az from the region
         p availability_zones
-        availability_zones.select{|az,value| value['region'].eql?(region) and value['state'].eql?('available')}.keys.sample
+        p availability_zones.select{|az,value| value['region_name'].eql?(region) and value['state'].eql?('available')}.keys.sample
+        availability_zones.select{|az,value| value['region_name'].eql?(region) and value['state'].eql?('available')}.keys.sample
       else
         availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}.reject{|az| az.match(/us-east-1/)}.keys.sample
       end
