@@ -24,7 +24,7 @@ p response.matches[0][0]
                                           user_data: render_template('user_data.sh', version: 'alpha'),
                                           instance_type: instance_type(options),
                                           placement: { availability_zone: az },
-                                          iam_instance_profile: { arn: 'arn:aws:iam::499008556223:role/ssm-full-access' }
+                                          iam_instance_profile: { name: 'ssm-full-access' }
                                         })
 
         # Wait for the instance to be created, running, and passed status checks
