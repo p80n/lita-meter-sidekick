@@ -8,13 +8,12 @@ module LitaMeterSidekick
     def deploy_instance(response)
 
       begin
-p response.matches[0][0]
+
         options = response.matches[0][0]
         az = availability_zone(options)
 
         response.reply("Deploying instance to #{az.chop}...")
-        puts "user data:"
-        puts render_template('user_data.sh', version: 'alpha')
+
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instances = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
                                           min_count: 1,
@@ -24,7 +23,6 @@ p response.matches[0][0]
                                           user_data: render_template('user_data.sh', version: 'alpha'),
                                           instance_type: instance_type(options),
                                           placement: { availability_zone: az },
-                                          iam_instance_profile: { name: 'ssm-full-access' }
                                         })
 
         # Wait for the instance to be created, running, and passed status checks
