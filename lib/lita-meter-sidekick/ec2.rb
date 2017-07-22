@@ -150,7 +150,7 @@ p response.matches[0][0]
                  else 'us-east-2'
                  end
         # pick a random az from the region
-        availability_zones.select{|az,value| value.region.eql?(region)}.sample.key
+        availability_zones.select{|az,value| value['region'].eql?(region) and value['state'].eql?('available')}.sample.key
       else
         availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}.reject{|az| az.match(/us-east-1/)}.sample
       end
