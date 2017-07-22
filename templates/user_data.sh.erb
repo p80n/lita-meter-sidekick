@@ -19,7 +19,7 @@ EOF
 systemctl enable amazon-ssm-agent.service
 
 
-curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= version %>/meterctl
+curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
 chmod +x /opt/bin/meterctl
 
 END_USER_LICENSE_ACCEPTED=yes
