@@ -1,7 +1,9 @@
+require 'base64'
 require 'net/http'
+require 'yaml'
+
 require 'aws-sdk'
 require 'lita-slack'
-require 'base64'
 
 module LitaMeterSidekick
   module EC2
@@ -15,22 +17,25 @@ module LitaMeterSidekick
 
         response.reply("Deploying instance to #{az.chop}...")
 
+        p YAML.load(render_template('ignition.yml', version: 'alpha')).to_json
+        user_data = Base64.strict_encode64(YAML.load(render_template('ignition.yml', version: 'alpha')).to_json)
+
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instances = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
                                           min_count: 1,
                                           max_count: 1,
                                           key_name: ssh_key(az),
                                           security_group_ids: [security_group(az)],
-                                          user_data: Base64.strict_encode64(render_template('user_data.sh', version: 'alpha')),
+                                          user_data: user_data,
                                           instance_type: instance_type(options),
                                           placement: { availability_zone: az },
                                         })
 
         # Wait for the instance to be created, running, and passed status checks
-        ec2.client.wait_until(:instance_running, {instance_ids: [instance[0].id]}){|w|
+        ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
           w.interval = 10
           w.max_attempts = 100
-          response.reply("Waiting for instance #{instance[0].id} to spin up...") }
+          response.reply("Waiting for instance #{instances[0].id} to spin up...") }
 
         response.reply("Tagging your instance")
 
