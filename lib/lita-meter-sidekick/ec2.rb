@@ -8,8 +8,8 @@ module LitaMeterSidekick
     def deploy_instance(response)
 
       begin
-p response.matches[1]
-        options = response.matches[1]
+p response.matches[0][0]
+        options = response.matches[0][0]
         az = availability_zone(options)
 
         response.reply("Deploying instance to #{az.chop}...")
