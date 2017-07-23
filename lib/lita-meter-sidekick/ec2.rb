@@ -152,7 +152,7 @@ module LitaMeterSidekick
     end
 
     def availability_zone(str)
-      if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
+      az = if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
         puts "md1: #{md[1]}"
         if az = availability_zones[md[1]]
           if az[:state].eql?('available')
@@ -189,7 +189,7 @@ module LitaMeterSidekick
       else
         availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}.reject{|az| az.match(/us-east-1/)}.keys.sample
       end
-
+      az.match(/us-east-1/) ? 'us-east-1b' : az  # us-east-1 doesn't have a default vpc, and onyl 1 subnet, in this AZ
     end
 
 
