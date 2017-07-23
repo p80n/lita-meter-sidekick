@@ -25,7 +25,7 @@ module LitaMeterSidekick
                              max_count: 1,
                              key_name: ssh_key(az),
                              security_group_ids: [security_group(az)],
-                             user_data: user_data,
+#                             user_data: user_data,
                              instance_type: instance_type(options),
                              placement: { availability_zone: az } }
 
