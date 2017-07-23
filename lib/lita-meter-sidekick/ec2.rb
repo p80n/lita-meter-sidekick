@@ -26,6 +26,7 @@ module LitaMeterSidekick
                                           max_count: 1,
                                           key_name: ssh_key(az),
                                           security_group_ids: [security_group(az)],
+                                          subnet_id: vpc(options),
                                           user_data: user_data,
                                           instance_type: instance_type(options),
                                           placement: { availability_zone: az },
@@ -49,7 +50,7 @@ module LitaMeterSidekick
                                     })
 
         resp = ec2.client.get_console_output({ instance_id: instances.first.id })
-p resp
+
         response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_dns_name}`")
 
       # summary of meters you own
@@ -96,6 +97,18 @@ p resp
     end
 
     private
+    def vpc(options)
+      if md = options.match(/(vpc-\w+)/)
+        md[1]
+      else
+        case availability_zone(options)
+        when /us-east-1/ then 'vpc-08c18d6c'
+        else nil
+        end
+      end
+    end
+
+
     def security_group(az)
       client = Aws::EC2::Client.new(region: az.chop)
       groups = client
@@ -124,7 +137,6 @@ p resp
     end
 
     def availability_zone(str)
-
       if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
         puts "md1: #{md[1]}"
         if az = availability_zones[md[1]]
