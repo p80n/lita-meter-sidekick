@@ -19,13 +19,15 @@ module LitaMeterSidekick
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
 
+        p user_data
+
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instance_options = { image_id: coreos_image_id(az.chop, response),
                              min_count: 1,
                              max_count: 1,
                              key_name: ssh_key(az),
                              security_group_ids: [security_group(az)],
-#                             user_data: user_data,
+                             user_data: user_data,
                              instance_type: instance_type(options),
                              placement: { availability_zone: az } }
 
@@ -50,16 +52,19 @@ module LitaMeterSidekick
                                             ]
                                     })
 
-        resp = ec2.client.get_console_output({ instance_id: instances.first.id })
-        p resp
         1.upto(10){
           p instances.first.public_ip_address
           p instances.first.public_dns_name
           p instances.first.public_dns_name.class
-          break if instances.first.public_dns_name
+          break if instances.first.public_ip_address
+          break unless instances.first.public_dns_name.blank?
           sleep 1 }
 
-        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_dns_name}`")
+        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_ip_address}`")
+
+        resp = ec2.client.get_console_output({ instance_id: instances.first.id })
+        p resp
+
 
       # summary of meters you own
       # attached with kubeconfig
