@@ -24,3 +24,14 @@ coreos:
         ExecStart=/usr/bin/mkdir -p /opt/bin/
         ExecStart=/usr/bin/curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
         ExecStart=/usr/bin/chmod +x /opt/bin/meterctl
+
+    - name: install-meter.service
+      command: start
+      content: |
+        [Unit]
+        Description=Install meter
+
+        [Service]
+        Type=oneshot
+        ExecStart=/root/install-meter
+        
