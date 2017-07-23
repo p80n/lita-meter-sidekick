@@ -21,16 +21,17 @@ module LitaMeterSidekick
         user_data = Base64.strict_encode64(YAML.load(render_template('ignition.yml', version: 'alpha')).to_json)
 
         ec2 = Aws::EC2::Resource.new(region: az.chop)
-        instances = ec2.create_instances({ image_id: coreos_image_id(az.chop, response),
-                                          min_count: 1,
-                                          max_count: 1,
-                                          key_name: ssh_key(az),
-                                          security_group_ids: [security_group(az)],
-                                          subnet_id: vpc(options),
-                                          user_data: user_data,
-                                          instance_type: instance_type(options),
-                                          placement: { availability_zone: az },
-                                        })
+        instance_options = { image_id: coreos_image_id(az.chop, response),
+                             min_count: 1,
+                             max_count: 1,
+                             key_name: ssh_key(az),
+                             security_group_ids: [security_group(az)],
+                             user_data: user_data,
+                             instance_type: instance_type(options),
+                             placement: { availability_zone: az } }
+
+        instance_options.merge(subnet_id: subnet(options))
+        instances = ec2.create_instances(instance_options)
 
         # Wait for the instance to be created, running, and passed status checks
         ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
@@ -97,6 +98,18 @@ module LitaMeterSidekick
     end
 
     private
+    def subnet(options)
+      # if md = options.match(/(vpc-\w+)/)
+      #   md[1]
+      # else
+        case availability_zone(options)
+        when /us-east-1/ then 'subnet-1d641037'
+        else nil
+        end
+      # end
+    end
+
+
     def vpc(options)
       if md = options.match(/(vpc-\w+)/)
         md[1]
