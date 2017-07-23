@@ -18,6 +18,7 @@ module LitaMeterSidekick
         response.reply("Deploying instance to #{az.chop}...")
 
         p YAML.load(render_template('ignition.yml', version: 'alpha')).to_json
+
         user_data = Base64.strict_encode64(YAML.load(render_template('ignition.yml', version: 'alpha')).to_json)
 
         ec2 = Aws::EC2::Resource.new(region: az.chop)

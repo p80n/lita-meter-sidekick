@@ -19,18 +19,6 @@ storage:
       mode: 755
       contents:
         source: https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
-systemd:
-  units:
-  - name: meterctl-init.service
-    enabled: true
-    contents: |
-      [Service]
-      Type=oneshot
-      ExecStart=/root/meterctl-init
-      KillMode=process
-      [Install]
-      WantedBy=network-online.target
-
 
 
 
