@@ -31,6 +31,8 @@ module LitaMeterSidekick
                              placement: { availability_zone: az } }
 
         instance_options.merge(subnet_id: subnet(options))
+#        instance_options.merge(subnet_id: subnet(options))
+        p instance_options
         instances = ec2.create_instances(instance_options)
 
         # Wait for the instance to be created, running, and passed status checks
