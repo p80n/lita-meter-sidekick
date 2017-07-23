@@ -54,6 +54,13 @@ module LitaMeterSidekick
                                     })
 
         resp = ec2.client.get_console_output({ instance_id: instances.first.id })
+        p resp
+        1.upto(10){
+          p instances.first.public_ip
+          p instances.first.public_dns_name
+          p instances.first.public_dns_name.class
+          break if instances.first.public_dns_name
+          sleep 1 }
 
         response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_dns_name}`")
 
