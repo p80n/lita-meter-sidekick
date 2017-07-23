@@ -1,12 +1,6 @@
 #cloud-config
 
 write_files:
-  - path: "/opt/bin/meterctl"
-    permissions: "0755"
-    owner: "root"
-    encoding: "base64"
-    content: |
-      <%= @meterctl %>
   - path: "/root/install-meter"
     permissions: "0755"
     owner: "root"
@@ -17,3 +11,18 @@ write_files:
       PRIVATE_IP=$(curl http://instance-data/latest/meta-data/local-ipv4)
       END_USER_LICENSE_ACCEPTED=yes
       /opt/bin/meterctl install-master -f $HOSTNAME -P $PUBLIC_IP -p $PRIVATE_IP
+
+
+coreos:
+  units:
+    - name: install-meterctl.service
+      command: start
+      content: |
+        [Unit]
+        Description=Install meterctl
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/mkdir -p /opt/bin/
+        ExecStart=/usr/bin/curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= version %>/meterctl
+        ExecStart=/usr/bin/chmod +x /opt/bin/meterctl

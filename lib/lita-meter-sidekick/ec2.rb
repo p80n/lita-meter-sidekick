@@ -17,8 +17,7 @@ module LitaMeterSidekick
 
         response.reply("Deploying instance to #{az.chop}...")
 
-        meterctl = Base64.strict_encode64(Net::HTTP.get(URI.parse('https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl')))
-        user_data = Base64.strict_encode64(render_template('cloud_config.yml', meterctl: meterctl))
+        user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
 
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instance_options = { image_id: coreos_image_id(az.chop, response),
