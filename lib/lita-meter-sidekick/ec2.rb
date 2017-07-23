@@ -19,8 +19,6 @@ module LitaMeterSidekick
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
 
-        p user_data
-
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instance_options = { image_id: coreos_image_id(az.chop, response),
                              min_count: 1,
@@ -52,17 +50,13 @@ module LitaMeterSidekick
                                             ]
                                     })
 
-        1.upto(10){
-          p instances.first.public_ip_address
-          p instances.first.public_dns_name
-          p instances.first.public_dns_name.class
-          break if instances.first.public_ip_address
-          break unless instances.first.public_dns_name.empty?
-          sleep 1 }
+        instance = Aws::EC2::Instance.new(instances.first.id, ec2.client)
 
-        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_ip_address}`")
+        p instance.public_dns_name
 
-        resp = ec2.client.get_console_output({ instance_id: instances.first.id })
+        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instance.public_ip_address}`")
+
+        resp = ec2.client.get_console_output({ instance_id: instance.id })
         p resp
 
 
