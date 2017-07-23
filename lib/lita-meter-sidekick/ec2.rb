@@ -53,13 +53,12 @@ module LitaMeterSidekick
           begin
             instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
             p instance.public_dns_name
+            response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instance.public_ip_address}`")
           rescue => e
             puts "Sleeping"
             sleep 1
           end
         end
-
-        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instance.public_ip_address}`")
 
         resp = ec2.client.get_console_output({ instance_id: instance.id })
         p resp
