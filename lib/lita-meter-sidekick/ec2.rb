@@ -17,9 +17,8 @@ module LitaMeterSidekick
 
         response.reply("Deploying instance to #{az.chop}...")
 
-        p YAML.load(render_template('ignition.yml', version: 'alpha')).to_json
-
-        user_data = Base64.strict_encode64(YAML.load(render_template('ignition.yml', version: 'alpha')).to_json)
+        meterctl = Net::HTTP.get(URI.parse('https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl'))
+        user_data = Base64.strict_encode64(YAML.load(render_template('cloud-config.yml', meterctl: meterctl)))
 
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instance_options = { image_id: coreos_image_id(az.chop, response),
@@ -32,7 +31,6 @@ module LitaMeterSidekick
                              placement: { availability_zone: az } }
 
         instance_options.merge!(subnet_id: subnet(options))
-#        instance_options.merge(subnet_id: subnet(options))
         p instance_options
         instances = ec2.create_instances(instance_options)
 
@@ -56,7 +54,7 @@ module LitaMeterSidekick
         resp = ec2.client.get_console_output({ instance_id: instances.first.id })
         p resp
         1.upto(10){
-          p instances.first.public_ip
+          p instances.first.public_ip_address
           p instances.first.public_dns_name
           p instances.first.public_dns_name.class
           break if instances.first.public_dns_name
