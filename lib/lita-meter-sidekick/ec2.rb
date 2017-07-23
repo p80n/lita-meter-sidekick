@@ -17,7 +17,7 @@ module LitaMeterSidekick
 
         response.reply("Deploying instance to #{az.chop}...")
 
-        meterctl = Net::HTTP.get(URI.parse('https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl'))
+        meterctl = Base64.strict_encode64(Net::HTTP.get(URI.parse('https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl')))
         p YAML.load(render_template('cloud_config.yml', meterctl: meterctl))
         user_data = Base64.strict_encode64(YAML.load(render_template('cloud_config.yml', meterctl: meterctl)))
 
