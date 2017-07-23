@@ -51,7 +51,7 @@ module LitaMeterSidekick
                                     })
         1.upto 10 do
           begin
-            instance = Aws::EC2::Instance.new(instances.first.id, ec2.client)
+            instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
             p instance.public_dns_name
           rescue => e
             puts "Sleeping"
@@ -62,7 +62,7 @@ module LitaMeterSidekick
         response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instance.public_ip_address}`")
 
         resp = ec2.client.get_console_output({ instance_id: instance.id })
-p resp
+        p resp
       # summary of meters you own
       # attached with kubeconfig
 
