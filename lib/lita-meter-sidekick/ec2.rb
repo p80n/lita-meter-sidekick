@@ -57,7 +57,7 @@ module LitaMeterSidekick
           p instances.first.public_dns_name
           p instances.first.public_dns_name.class
           break if instances.first.public_ip_address
-          break unless instances.first.public_dns_name.blank?
+          break unless instances.first.public_dns_name.empty?
           sleep 1 }
 
         response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instances.first.public_ip_address}`")
