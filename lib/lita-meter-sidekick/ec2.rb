@@ -34,15 +34,12 @@ module LitaMeterSidekick
         instances = ec2.create_instances(instance_options)
 
         # Wait for the instance to be created, running, and passed status checks
-        ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
+        foo = ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
           w.interval = 10
           w.max_attempts = 100
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
-
-        response.reply("Tagging your instance")
-
-        # Name the instance 'MyGroovyInstance' and give it the Group tag 'MyGroovyGroup'
-        instances.batch_create_tags({ tags: [{ key: 'Name', value: '6fusion Meter' },
+p foo
+        instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
@@ -50,11 +47,16 @@ module LitaMeterSidekick
                                             ]
                                     })
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance ready: `ssh -i #{ssh_key(az)} core@#{instance.public_dns_name}`")
-        resp = ec2.client.get_console_output({ instance_id: instance.id })
-        p resp
-puts "-----------------"
-p        instance.console_output
+        response.reply("Meter install in progress; instance up @ `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
+
+#        ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
+
+        1.upto(20){
+          out = instance.console_output
+          put out
+          break if out
+          sleep 1 }
+
 
       # summary of meters you own
       # attached with kubeconfig

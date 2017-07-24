@@ -9,7 +9,10 @@ write_files:
       HOSTNAME=$(curl -s http://instance-data/latest/meta-data/public-hostname)
       PUBLIC_IP=$(curl -s http://instance-data/latest/meta-data/public-ipv4)
       PRIVATE_IP=$(curl -s http://instance-data/latest/meta-data/local-ipv4)
-      END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl install-master -f $HOSTNAME -P $PUBLIC_IP -p $PRIVATE_IP
+      PATH=$PATH:/opt/bin END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl install-master -f $HOSTNAME -P $PUBLIC_IP -p $PRIVATE_IP >> /dev/console
+      echo begin kubeconfig
+      /usr/bin/sed -r 's|(^.+-authority): (.+)|printf "\1-data: %s" $(base64 -w0 \2)|e; s|(^.+-certificate: )(.+)|printf "    client-certificate-data: %s" $(base64 -w0 \2)|e;   s|(^ *client-key: )(.+)|printf "    client-key-data: %s" $(base64 -w0 \2)|e;'   /root/.kube/config >> /dev/console
+      echo end kubeconfig
 
 coreos:
   units:
