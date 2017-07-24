@@ -49,15 +49,14 @@ p foo
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
         response.reply("Meter install in progress; instance up @ `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
 
-        1.upto(20){
+        1.upto(60){
           out = instance.console_output
-          p out
-          if out
+          if out.output
             p out
           else
             p "no output yet"
           end
-          sleep 5 }
+          sleep 10 }
 
         response.reply "Meter @ #{instance.id} is ready to rock"
 
