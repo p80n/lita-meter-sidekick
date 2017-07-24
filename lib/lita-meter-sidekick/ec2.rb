@@ -49,14 +49,17 @@ p foo
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
         response.reply("Meter install in progress; instance up @ `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
 
-#        ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
-
         1.upto(20){
           out = instance.console_output
-          put out
-          break if out
-          sleep 1 }
+          p out
+          if out
+            p out
+          else
+            p "no output yet"
+          end
+          sleep 5 }
 
+        response.reply "Meter @ #{instance.id} is ready to rock"
 
       # summary of meters you own
       # attached with kubeconfig
