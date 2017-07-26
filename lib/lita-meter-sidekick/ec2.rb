@@ -14,12 +14,9 @@ module LitaMeterSidekick
          # currently hard-coded to deploy a meter. need to figure out how to update user_data, and add tags later, etc
         options = response.matches[0][0]
         az = availability_zone(options)
-        puts __LINE__
-        puts "az: #{az}"
         response.reply("Deploying instance to #{az.chop}...")
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
-        puts __LINE__
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instance_options = { image_id: coreos_image_id(az.chop, response),
                              min_count: 1,
@@ -29,17 +26,13 @@ module LitaMeterSidekick
                              user_data: user_data,
                              instance_type: instance_type(options),
                              placement: { availability_zone: az } }
-puts __LINE__
         instance_options.merge!(subnet_id: subnet(options))
-puts __LINE__
         instances = ec2.create_instances(instance_options)
-puts __LINE__
         # Wait for the instance to be created, running, and passed status checks
         ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
           w.interval = 10
           w.max_attempts = 100
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
-puts __LINE__
         instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
@@ -254,26 +247,14 @@ puts __LINE__
     end
 
     def coreos_image_id(region, response)
-      puts __LINE__
       redis.hget('coreos_image_id', region) ||
         begin
-        puts __LINE__
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
-          puts __LINE__
-          puts "region: #{region}"
-          result = Aws::EC2::Client.new(region: Aws::EC2::Client.new(region: region)
-                                   .describe_images(owners:  ['self', 'aws-marketplace'],
-                                                    filters: [{name: 'virtualization-type', values: ['hvm']},
-                                                              {name: 'description', values: ['6fusion-meter*', 'CoreOS*']}]))
-puts __LINE__
+          result = Aws::EC2::Client.new(region: region).describe_images(owners:  ['self', 'aws-marketplace'], filters: [{name: 'virtualization-type', values: ['hvm']}, {name: 'description', values: ['6fusion-meter*', 'CoreOS*']}])
           custom_images = result.images.select{|i| i.name.match(/6fusion.meter/i)}.sort_by(&:creation_date)
-puts __LINE__
           latest = custom_images.empty? ? result.images.sort_by(&:creation_date).last : custom_images.last
-puts __LINE__
           redis.hset('coreos_image_id', region, latest.image_id)
-puts __LINE__
           redis.expire('coreos_image_id', 24 * 7 * 3600)
-puts __LINE__
           latest.image_id
         end
     end
