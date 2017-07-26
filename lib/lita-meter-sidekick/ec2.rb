@@ -261,7 +261,7 @@ module LitaMeterSidekick
           redis.expire('coreos_image_id', 24 * 7 * 3600)
           latest.image_id
         end
- #   end
+    end
 
   end
 end
