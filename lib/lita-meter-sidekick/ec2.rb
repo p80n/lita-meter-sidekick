@@ -48,6 +48,7 @@ module LitaMeterSidekick
 
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
         response.reply("Instance available via `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`. Meter installation in progress...")
+
         instance
       rescue => e
         response.reply(render_template('exception', exception: e))
@@ -56,6 +57,7 @@ module LitaMeterSidekick
 
     def deploy_meter(response)
       instance = deploy_instance(response)
+      p instance
       1.upto(60) do
         sleep 10
         if instance.console_output.output
