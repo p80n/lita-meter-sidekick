@@ -47,6 +47,7 @@ module LitaMeterSidekick
                                             ]})
         p __LINE__
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
+        p instance.console_output
         p __LINE__
         response.reply("Instance available via `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`. Meter installation in progress...")
 
