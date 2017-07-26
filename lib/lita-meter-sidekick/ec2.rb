@@ -57,9 +57,9 @@ module LitaMeterSidekick
     def deploy_meter(response)
       instance = deploy_instance(response)
       1.upto(60) do
-        if i.console_output.output
+        if instance.console_output.output
           p "OUTOUTP!"
-          p i.console_output.output
+          p instace.console_output.output
         end
       end
       instance
