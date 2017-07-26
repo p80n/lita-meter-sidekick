@@ -254,9 +254,12 @@ puts __LINE__
     end
 
     def coreos_image_id(region, response)
+      puts __LINE__
       redis.hget('coreos_image_id', region) ||
+        puts __LINE__
         begin
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
+          puts __LINE__
           result = Aws::EC2::Client.new(region: Aws::EC2::Client.new(region: region)
                                    .describe_images(owners:  ['self', 'aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
