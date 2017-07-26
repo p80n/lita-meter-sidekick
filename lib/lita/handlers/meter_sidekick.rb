@@ -12,10 +12,14 @@ module Lita
         route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
         route(/meter latest/,   :latest, help: { "#{name}: meter latest"   => 'Links to installers for latest version of the Meter' })
 
-        route(/deploy instance (.*)/,
-              :deploy_instance,
-              help: { "#{name}: deploy instance DEETS" =>
-                      'Deploy an instance, DEETS can be a region, instance type, volume size. Defaults to t2.xlarge with 20GB of space.' })
+        route(/meter deploy (.*)/,
+              :meter_deploy,
+              help: { "#{name}: meter deploy [options]" =>
+                      'Deploy a meter. Options can be a region, instance type. Defaults to m4.xlarge'})
+        # route(/deploy instance (.*)/,
+        #       :deploy_instance,
+        #       help: { "#{name}: deploy instance DEETS" =>
+        #               'Deploy an instance, DEETS can be a region, instance type. Defaults to t2.xlarge'})
 
         route(/list instances (\w+)=(\w+)/, :list_filtered_instances, help: { "#{name}: list instances TAG=VALUE" => 'List instances, filtered by tag' })
         route(/list instances$/,    :list_instances,       help: { "#{name}: list instances" => 'List all instances in EC2' })

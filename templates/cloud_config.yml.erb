@@ -13,6 +13,7 @@ write_files:
       echo begin kubeconfig
       /usr/bin/sed -r 's|(^.+-authority): (.+)|printf "\1-data: %s" $(base64 -w0 \2)|e; s|(^.+-certificate: )(.+)|printf "    client-certificate-data: %s" $(base64 -w0 \2)|e;   s|(^ *client-key: )(.+)|printf "    client-key-data: %s" $(base64 -w0 \2)|e;'   /root/.kube/config | tee /dev/console
       echo end kubeconfig
+      PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
 
 coreos:
   units:

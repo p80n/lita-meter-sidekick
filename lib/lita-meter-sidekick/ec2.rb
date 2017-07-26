@@ -11,7 +11,7 @@ module LitaMeterSidekick
     def deploy_instance(response)
 
       begin
-
+         # currently hard-coded to deploy a meter. need to figure out how to update user_data, and add tags later, etc
         options = response.matches[0][0]
         az = availability_zone(options)
 
@@ -30,45 +30,43 @@ module LitaMeterSidekick
                              placement: { availability_zone: az } }
 
         instance_options.merge!(subnet_id: subnet(options))
-        p instance_options
+
         instances = ec2.create_instances(instance_options)
 
         # Wait for the instance to be created, running, and passed status checks
-        foo = ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
+        ec2.client.wait_until(:instance_running, {instance_ids: [instances[0].id]}){|w|
           w.interval = 10
           w.max_attempts = 100
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
-p foo
+
         instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
-                                            ]
-                                    })
+                                            ]})
+
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Meter install in progress; instance up @ `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
-
-        1.upto(60){
-          out = instance.console_output
-          if out.output
-            p out
-          else
-            p "no output yet"
-          end
-          sleep 10 }
-
-        response.reply "Meter @ #{instance.id} is ready to rock"
-
-      # summary of meters you own
-      # attached with kubeconfig
-
+        response.reply("Instance available via `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`. Meter installation in progress...")
+        instance
       rescue => e
         response.reply(render_template('exception', exception: e))
       end
+    end
 
+    def deploy_meter(response)
+      instance = deploy_instance(response)
+      1.upto(60) do
+        if i.console_output.output
+          p "OUTOUTP!"
+          p i.console_output.output
+        end
+      end
+      instance
 
     end
+
+
 
     ####################################################################################################
     # List operations
@@ -152,7 +150,7 @@ p foo
     def instance_type(str)
       puts "Checking #{str} for instance type"
       md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|small|medium|large|xlarge))/)
-      md ? md[1] : 't2.xlarge'
+      md ? md[1] : 'm4.xlarge'
     end
 
     def availability_zone(str)
@@ -251,9 +249,11 @@ p foo
         begin
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
           result = Aws::EC2::Client.new(region: region)
-                                   .describe_images(owners:  ['aws-marketplace'],
+                                   .describe_images(owners:  ['self', 'aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
-                                                              {name: 'description', values: ['CoreOS*']}])
+                                                              {name: 'description', values: ['6fusion-meter*', 'CoreOS*']}])
+          p "image results:"
+          p result.images
           latest = result.images.sort_by(&:creation_date).last
           redis.hset('coreos_image_id', region, latest.image_id)
           redis.expire('coreos_image_id', 24 * 7 * 3600)
