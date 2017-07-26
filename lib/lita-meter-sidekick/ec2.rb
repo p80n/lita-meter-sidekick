@@ -155,8 +155,7 @@ module LitaMeterSidekick
     end
 
     def availability_zone(str)
-      az = 'us-east-2'
-      if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
+      az = if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
         puts "md1: #{md[1]}"
         if az = availability_zones[md[1]]
           if az[:state].eql?('available')
