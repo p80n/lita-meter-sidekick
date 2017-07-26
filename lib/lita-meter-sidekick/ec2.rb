@@ -247,16 +247,16 @@ module LitaMeterSidekick
     end
 
     def coreos_image_id(region, response)
-#      redis.hget('coreos_image_id', region) ||
+      redis.hget('coreos_image_id', region) ||
         begin
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
-          result = Aws::EC2::Client.new(region: region)
+          result = Aws::EC2::Client.new(region: Aws::EC2::Client.new(region: region)
                                    .describe_images(owners:  ['self', 'aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
-                                                              {name: 'description', values: ['6fusion-meter*', 'CoreOS*']}])
-          p "image results:"
-          p result.images
-          latest = result.images.sort_by(&:creation_date).last
+                                                              {name: 'description', values: ['6fusion-meter*', 'CoreOS*']}]))
+
+          custom_images = result.images.select{|i| i.name.match(/6fusion.meter/i)}.sort_by(&:creation_date)
+          latest = custom_images.empty? ? result.images.sort_by(&:creation_date).last : custom_images.last
           redis.hset('coreos_image_id', region, latest.image_id)
           redis.expire('coreos_image_id', 24 * 7 * 3600)
           latest.image_id
