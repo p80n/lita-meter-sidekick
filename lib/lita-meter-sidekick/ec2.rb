@@ -45,8 +45,9 @@ module LitaMeterSidekick
                                              { key: 'DeployedBy', value: 'lita' },
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
-
+        p __LINE__
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
+        p __LINE__
         response.reply("Instance available via `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`. Meter installation in progress...")
 
         instance
@@ -56,7 +57,9 @@ module LitaMeterSidekick
     end
 
     def deploy_meter(response)
+      p __LINE__
       instance = deploy_instance(response)
+      p __LINE__
       p instance
       1.upto(60) do
         sleep 10
