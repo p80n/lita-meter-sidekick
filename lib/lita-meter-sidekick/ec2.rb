@@ -155,7 +155,8 @@ module LitaMeterSidekick
     end
 
     def availability_zone(str)
-      az = if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
+      az = 'us-east-2'
+      if md = str.match(/(\p{L}{2}-\p{L}+-\d\p{L})\b/)
         puts "md1: #{md[1]}"
         if az = availability_zones[md[1]]
           if az[:state].eql?('available')
@@ -246,7 +247,7 @@ module LitaMeterSidekick
     end
 
     def coreos_image_id(region, response)
-      redis.hget('coreos_image_id', region) ||
+#      redis.hget('coreos_image_id', region) ||
         begin
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
           result = Aws::EC2::Client.new(region: region)
@@ -260,7 +261,7 @@ module LitaMeterSidekick
           redis.expire('coreos_image_id', 24 * 7 * 3600)
           latest.image_id
         end
-    end
+ #   end
 
   end
 end
