@@ -260,6 +260,7 @@ puts __LINE__
         puts __LINE__
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
           puts __LINE__
+          puts "region: #{region}"
           result = Aws::EC2::Client.new(region: Aws::EC2::Client.new(region: region)
                                    .describe_images(owners:  ['self', 'aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
