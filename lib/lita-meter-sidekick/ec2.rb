@@ -33,16 +33,14 @@ module LitaMeterSidekick
           w.interval = 10
           w.max_attempts = 100
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
+
         instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
-        p __LINE__
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        p instance.console_output
-        p __LINE__
         response.reply("Instance available via `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`. Meter installation in progress...")
 
         instance
@@ -53,9 +51,7 @@ module LitaMeterSidekick
     end
 
     def deploy_meter(response)
-      p __LINE__
       instance = deploy_instance(response)
-      p __LINE__
       p instance
       1.upto(60) do
         sleep 10
