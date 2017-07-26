@@ -19,7 +19,7 @@ module LitaMeterSidekick
         response.reply("Deploying instance to #{az.chop}...")
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
-puts __LINE__
+        puts __LINE__
         ec2 = Aws::EC2::Resource.new(region: az.chop)
         instance_options = { image_id: coreos_image_id(az.chop, response),
                              min_count: 1,
@@ -55,6 +55,7 @@ puts __LINE__
         instance
       rescue => e
         response.reply(render_template('exception', exception: e))
+        raise e
       end
     end
 
@@ -260,11 +261,15 @@ puts __LINE__
                                    .describe_images(owners:  ['self', 'aws-marketplace'],
                                                     filters: [{name: 'virtualization-type', values: ['hvm']},
                                                               {name: 'description', values: ['6fusion-meter*', 'CoreOS*']}]))
-
+puts __LINE__
           custom_images = result.images.select{|i| i.name.match(/6fusion.meter/i)}.sort_by(&:creation_date)
+puts __LINE__
           latest = custom_images.empty? ? result.images.sort_by(&:creation_date).last : custom_images.last
+puts __LINE__
           redis.hset('coreos_image_id', region, latest.image_id)
+puts __LINE__
           redis.expire('coreos_image_id', 24 * 7 * 3600)
+puts __LINE__
           latest.image_id
         end
     end
