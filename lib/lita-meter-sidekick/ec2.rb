@@ -256,8 +256,8 @@ puts __LINE__
     def coreos_image_id(region, response)
       puts __LINE__
       redis.hget('coreos_image_id', region) ||
-        puts __LINE__
         begin
+        puts __LINE__
           response.reply("Retrieving latest CoreOS AMI for #{region}. This will take a moment... :clock3:")
           puts __LINE__
           result = Aws::EC2::Client.new(region: Aws::EC2::Client.new(region: region)
