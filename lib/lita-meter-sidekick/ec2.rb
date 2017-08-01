@@ -57,7 +57,7 @@ module LitaMeterSidekick
         sleep 10
         if instance.console_output.output
           p "OUTOUTP!"
-          p instace.console_output.output
+          p instance.console_output.output
         end
       end
       instance
