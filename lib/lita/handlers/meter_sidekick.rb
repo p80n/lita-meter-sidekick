@@ -12,7 +12,7 @@ module Lita
         route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
         route(/meter latest/,   :latest, help: { "#{name}: meter latest"   => 'Links to installers for latest version of the Meter' })
 
-        route(/meter deploy(\s.*)/,
+        route(/meter deploy\s*(.*)/,
               :deploy_meter,
               help: { "#{name}: meter deploy [options]" =>
                       'Deploy a meter. Options can be a region, instance type. Defaults to m4.xlarge'})

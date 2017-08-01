@@ -187,6 +187,7 @@ module LitaMeterSidekick
         # pick a random az from the region
         availability_zones.select{|az,value| value['region_name'].eql?(region) and value['state'].eql?('available')}.keys.sample
       else
+        p availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}
         availability_zones.keys.select{|az| az.match(/us-\w+-\d.*/)}.reject{|az| az.match(/us-east-1/)}.keys.sample
       end
       az.match(/us-east-1/) ? 'us-east-1b' : az  # us-east-1 doesn't have a default vpc, and onyl 1 subnet, in this AZ
