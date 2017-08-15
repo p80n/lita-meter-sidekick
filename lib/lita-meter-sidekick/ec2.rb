@@ -18,29 +18,12 @@ module LitaMeterSidekick
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
         ec2 = Aws::EC2::Resource.new(region: az.chop)
-        # volume_options = { availability_zone: az,
-        #                    size: volume_size(options),
-        #                    volume_type: volume_type(options),
-        #                    tag_specifications: [
-        #                      {
-        #                        resource_type: 'volume',
-        #                        tags: [
-        #                          {
-        #                            key: 'Name',
-        #                            value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})"
-        #                          } ]
-        #                      }
-        #                    ]
-        #                  }
-        # volume = ec2.create_volume(volume_options)
-        block_device_mappings = [ {
-                                    device_name: "/dev/xvda",
-                                    ebs: {
-                                      delete_on_termination: true,
-                                      volume_size: volume_size(options),
-                                      volume_type: volume_type(options) } } ]
 
-
+        block_device_mappings = [{ device_name: "/dev/xvda",
+                                   ebs: {
+                                     delete_on_termination: true,
+                                     volume_size: volume_size(options),
+                                     volume_type: volume_type(options) }}]
         instance_options = { image_id: coreos_image_id(az.chop, response),
                              min_count: 1,
                              max_count: 1,
@@ -49,8 +32,8 @@ module LitaMeterSidekick
                              user_data: user_data,
                              instance_type: instance_type(options),
                              placement: { availability_zone: az },
-                             block_device_mappings: block_device_mappings
-                           }
+                             block_device_mappings: block_device_mappings }
+
         instance_options.merge!(subnet_id: subnet(options))
         instances = ec2.create_instances(instance_options)
         # Wait for the instance to be created, running, and passed status checks
@@ -66,7 +49,7 @@ module LitaMeterSidekick
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance available via `ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`. Meter installation in progress...")
+        response.reply("Instance available via \n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation in progress...")
 
         instance
       rescue => e
@@ -77,6 +60,31 @@ module LitaMeterSidekick
 
     def deploy_meter(response)
       instance = deploy_instance(response)
+      az = availability_zone(options)
+      ssm = Aws::SSM::Client.new(region: az.chop)
+
+  # - path: "/root/install-meter"
+  #   permissions: "0755"
+  #   owner: "root"
+  #   content: |
+  #     #!/bin/sh
+  #     HOSTNAME=$(curl -s http://instance-data/latest/meta-data/public-hostname)
+  #     PUBLIC_IP=$(curl -s http://instance-data/latest/meta-data/public-ipv4)
+  #     PRIVATE_IP=$(curl -s http://instance-data/latest/meta-data/local-ipv4)
+  #     PATH=$PATH:/opt/bin END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl install-master -f $HOSTNAME -P $PUBLIC_IP -p $PRIVATE_IP | tee /dev/console
+  #     echo begin kubeconfig
+  #     /usr/bin/sed -r 's|(^.+-authority): (.+)|printf "\1-data: %s" $(base64 -w0 \2)|e; s|(^.+-certificate: )(.+)|printf "    client-certificate-data: %s" $(base64 -w0 \2)|e;   s|(^ *client-key: )(.+)|printf "    client-key-data: %s" $(base64 -w0 \2)|e;'   /root/.kube/config | tee /dev/console
+  #     echo end kubeconfig
+  #     PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
+
+
+      response = ssm.create_document({ content: '/opt/bin/meterctl install-master',
+                                       name: 'MeterInstallMasterContent',
+                                       document_type: 'Command' })
+      puts "woot"
+      # response = ssm.send_command({ instance_ids: [ instance.id ],
+
+
       instance
     end
 
@@ -115,7 +123,8 @@ module LitaMeterSidekick
 
     private
     def volume_size(options)
-      30
+      md = options.match(/\b(\d+)gi*b/i)
+      md ? md[1] : 30
     end
 
     def volume_type(options)
@@ -123,14 +132,10 @@ module LitaMeterSidekick
     end
 
     def subnet(options)
-      # if md = options.match(/(vpc-\w+)/)
-      #   md[1]
-      # else
-        case availability_zone(options)
-        when /us-east-1/ then 'subnet-1d641037'
-        else nil
-        end
-      # end
+      case availability_zone(options)
+      when /us-east-1/ then 'subnet-1d641037'
+      else nil
+      end
     end
 
 

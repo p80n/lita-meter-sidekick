@@ -1,19 +1,6 @@
 #cloud-config
 
 write_files:
-  - path: "/root/install-meter"
-    permissions: "0755"
-    owner: "root"
-    content: |
-      #!/bin/sh
-      HOSTNAME=$(curl -s http://instance-data/latest/meta-data/public-hostname)
-      PUBLIC_IP=$(curl -s http://instance-data/latest/meta-data/public-ipv4)
-      PRIVATE_IP=$(curl -s http://instance-data/latest/meta-data/local-ipv4)
-      PATH=$PATH:/opt/bin END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl install-master -f $HOSTNAME -P $PUBLIC_IP -p $PRIVATE_IP | tee /dev/console
-      echo begin kubeconfig
-      /usr/bin/sed -r 's|(^.+-authority): (.+)|printf "\1-data: %s" $(base64 -w0 \2)|e; s|(^.+-certificate: )(.+)|printf "    client-certificate-data: %s" $(base64 -w0 \2)|e;   s|(^ *client-key: )(.+)|printf "    client-key-data: %s" $(base64 -w0 \2)|e;'   /root/.kube/config | tee /dev/console
-      echo end kubeconfig
-      PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
 
 coreos:
   units:
@@ -28,14 +15,12 @@ coreos:
         ExecStart=/usr/bin/mkdir -p /opt/bin/
         ExecStart=/usr/bin/curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
         ExecStart=/usr/bin/chmod +x /opt/bin/meterctl
-
-    - name: install-meter.service
+    - name: amazon-ssm-agent.service
       command: start
       content: |
         [Unit]
-        Description=Install meter
+        Description=Amazon SSM Agent
 
         [Service]
-        Type=oneshot
-        ExecStart=/root/install-meter
-        
+        ExecStart=/opt/bin/amazon-ssm-agent
+
