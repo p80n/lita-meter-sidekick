@@ -18,6 +18,30 @@ module LitaMeterSidekick
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
         ec2 = Aws::EC2::Resource.new(region: az.chop)
+        # volume_options = { availability_zone: az,
+        #                    size: volume_size(options),
+        #                    volume_type: volume_type(options),
+        #                    tag_specifications: [
+        #                      {
+        #                        resource_type: 'volume',
+        #                        tags: [
+        #                          {
+        #                            key: 'Name',
+        #                            value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})"
+        #                          } ]
+        #                      }
+        #                    ]
+        #                  }
+        # volume = ec2.create_volume(volume_options)
+        block_device_mappings = [ {
+                                    device_name: "/dev/xvda",
+                                    ebs: {
+                                      encrypted: false,
+                                      delete_on_termination: true,
+                                      volume_size: volume_size(options),
+                                      volume_type: volume_type(options) } } ]
+
+
         instance_options = { image_id: coreos_image_id(az.chop, response),
                              min_count: 1,
                              max_count: 1,
@@ -25,7 +49,9 @@ module LitaMeterSidekick
                              security_group_ids: [security_group(az)],
                              user_data: user_data,
                              instance_type: instance_type(options),
-                             placement: { availability_zone: az } }
+                             placement: { availability_zone: az },
+                             block_device_mappings: block_device_mappings
+                           }
         instance_options.merge!(subnet_id: subnet(options))
         instances = ec2.create_instances(instance_options)
         # Wait for the instance to be created, running, and passed status checks
@@ -52,19 +78,8 @@ module LitaMeterSidekick
 
     def deploy_meter(response)
       instance = deploy_instance(response)
-      p instance
-      1.upto(60) do
-        sleep 10
-        if instance.console_output.output
-          p "OUTOUTP!"
-          p instance.console_output.output
-        end
-      end
       instance
-
     end
-
-
 
     ####################################################################################################
     # List operations
@@ -100,6 +115,14 @@ module LitaMeterSidekick
     end
 
     private
+    def volume_size(options)
+      30
+    end
+
+    def volume_type(options)
+      'gp2'
+    end
+
     def subnet(options)
       # if md = options.match(/(vpc-\w+)/)
       #   md[1]
