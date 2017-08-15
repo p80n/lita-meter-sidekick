@@ -36,7 +36,6 @@ module LitaMeterSidekick
         block_device_mappings = [ {
                                     device_name: "/dev/xvda",
                                     ebs: {
-                                      encrypted: false,
                                       delete_on_termination: true,
                                       volume_size: volume_size(options),
                                       volume_type: volume_type(options) } } ]
