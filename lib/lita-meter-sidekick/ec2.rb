@@ -60,6 +60,7 @@ module LitaMeterSidekick
 
     def deploy_meter(response)
       instance = deploy_instance(response)
+      options = response.matches[0][0]
       az = availability_zone(options)
       ssm = Aws::SSM::Client.new(region: az.chop)
 
