@@ -64,6 +64,8 @@ module LitaMeterSidekick
       az = availability_zone(options)
       ssm = Aws::SSM::Client.new(region: az.chop)
 
+
+#       '{"commands":["/usr/bin/ls"],"workingDirectory":["/root"]}'
   # - path: "/root/install-meter"
   #   permissions: "0755"
   #   owner: "root"
@@ -82,8 +84,9 @@ module LitaMeterSidekick
       response = ssm.create_document({ content: '/opt/bin/meterctl install-master',
                                        name: 'MeterInstallMasterContent',
                                        document_type: 'Command' })
-      puts "woot"
-      # response = ssm.send_command({ instance_ids: [ instance.id ],
+p response
+#      response = ssm.send_command({ instance_ids: [ instance.id ],
+
 
 
       instance
