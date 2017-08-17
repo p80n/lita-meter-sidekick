@@ -65,7 +65,7 @@ module LitaMeterSidekick
       ssm = Aws::SSM::Client.new(region: az.chop)
 
 
-#       '{"commands":["/usr/bin/ls"],"workingDirectory":["/root"]}'
+#
   # - path: "/root/install-meter"
   #   permissions: "0755"
   #   owner: "root"
@@ -80,8 +80,10 @@ module LitaMeterSidekick
   #     echo end kubeconfig
   #     PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
 
+      content = { commands: ['/opt/bin/meterctl install-master'],
+                  workingDirectory: ['/root'] }
 
-      response = ssm.create_document({ content: '/opt/bin/meterctl install-master',
+      response = ssm.create_document({ content: content.to_json,
                                        name: 'MeterInstallMasterContent',
                                        document_type: 'Command' })
 p response
@@ -98,7 +100,7 @@ p response
       list_instances(response, [{ name: 'tag:ApplicationRole', values: ['6fusionMeter'] }])
     end
     def list_user_instances(response)
-      list_instances(response, [{ name: 'tag:Owner', values: [aws_user(response.user.mention_name)] }])
+      list_instances(response, [{ name: 'tag:Owner', values: [aws_user_for(response.user.mention_name)] }])
     end
     def list_filtered_instances(response)
       tag,value = response.matches[0][0..1]
