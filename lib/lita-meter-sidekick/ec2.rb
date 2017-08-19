@@ -81,17 +81,25 @@ module LitaMeterSidekick
   #     PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
 
       content = { commands: ['/opt/bin/meterctl install-master'],
-                  workingDirectory: ['/root'] }
+                  workingDirectory: ['/root'],
+                }
 
       response = ssm.create_document({ content: content.to_json,
                                        name: 'MeterInstallMasterContent',
-                                       document_type: 'Command' })
-p response
-#      response = ssm.send_command({ instance_ids: [ instance.id ],
+                                       document_type: 'Command',
+                                       schema_version: '2.2' })
+      p response
+      #      response = ssm.send_command({ instance_ids: [ instance.id ],
 
 
 
       instance
+    end
+
+    def terminate_instance(response)
+      instance_id = response.matches[0][0]
+      ec2 = Aws::EC2::Resource.new(region: 'us-east-2') # store @ creation time in redis, retrieve; fallback to searching all of aws?
+      ec2.instance(instance_id).terminate
     end
 
     ####################################################################################################
@@ -282,11 +290,13 @@ p response
         begin
           response.reply("Retrieving latest 6fusion Meter AMI for #{region}. This will take a moment... :clock3:")
           result = Aws::EC2::Client.new(region: region)
-.describe_images(owners:  ['self'], filters: [{name: 'virtualization-type', values: ['hvm']}, {name: 'name', values: ['6fusion Meter*']}])
+                     .describe_images(owners:  ['self'],
+                                      filters: [{name: 'virtualization-type', values: ['hvm']},
+                                                {name: 'name', values: ['6fusion Meter*']}])
           custom_images = result.images.select{|i| i.name.match(/6fusion.meter/i)}.sort_by(&:creation_date)
           latest = custom_images.empty? ? result.images.sort_by(&:creation_date).last : custom_images.last
           redis.hset('meter_image_id', region, latest.image_id)
-          redis.expire('meter_image_id', 24 * 7 * 3600)
+          redis.expire('meter_image_id', 3600)
           latest.image_id
         end
     end
