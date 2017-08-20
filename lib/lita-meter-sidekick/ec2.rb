@@ -82,12 +82,13 @@ module LitaMeterSidekick
 
       content = { commands: ['/opt/bin/meterctl install-master'],
                   workingDirectory: ['/root'],
+                  schema_version: '2.2'
                 }
 
       response = ssm.create_document({ content: content.to_json,
                                        name: 'MeterInstallMasterContent',
-                                       document_type: 'Command',
-                                       schema_version: '2.2' })
+                                       document_type: 'Command'
+                                     })
       p response
       #      response = ssm.send_command({ instance_ids: [ instance.id ],
 
@@ -99,7 +100,24 @@ module LitaMeterSidekick
     def terminate_instance(response)
       instance_id = response.matches[0][0]
       ec2 = Aws::EC2::Resource.new(region: 'us-east-2') # store @ creation time in redis, retrieve; fallback to searching all of aws?
-      ec2.instance(instance_id).terminate
+
+      instance = ec2.instance(instance_id)
+      if instance.exists?
+        case instance.state.code
+        when 48  # terminated
+          response.reply("Instance #{instance_id} is already terminated")
+        when 64  # stopping
+          response.reply("Instance #{instance_id} is shutting down")
+        when 89  # stopped
+          response.reply("Instance #{instance_id} is currently stopped, terminating...")
+          instance.terminate
+        else
+          instance.terminate
+          response.reply("Terminating instance #{instance_id}...")
+        end
+      else
+        response.reply("Not able to find any instance with id #{instance_id}.")
+      end
     end
 
     ####################################################################################################

@@ -22,7 +22,7 @@ module Lita
         #               'Deploy an instance, DEETS can be a region, instance type. Defaults to t2.xlarge'})
 
         route(/instance terminate (i-\w+)/, :terminate_instance, help: { "#{name}: instance terminate INSTANCE_ID" => 'Terminate the instance' })
-        route(/terminate instance (i-\w+)/, :terminate_instance, help: { "#{name}: instance terminate INSTANCE_ID" => 'Terminate the instance' })
+        route(/terminate instance (i-\w+)/, :terminate_instance, help: { "#{name}: terminate instance INSTANCE_ID" => 'Terminate the instance' })
 
         route(/list instances (\w+)=(\w+)/, :list_filtered_instances, help: { "#{name}: list instances TAG=VALUE" => 'List instances, filtered by tag' })
         route(/list instances$/,    :list_instances,       help: { "#{name}: list instances" => 'List all instances in EC2' })
