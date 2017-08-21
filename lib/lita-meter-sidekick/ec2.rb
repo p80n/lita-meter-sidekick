@@ -64,8 +64,6 @@ module LitaMeterSidekick
       az = availability_zone(options)
       ssm = Aws::SSM::Client.new(region: az.chop)
 
-
-#
   # - path: "/root/install-meter"
   #   permissions: "0755"
   #   owner: "root"
@@ -80,19 +78,24 @@ module LitaMeterSidekick
   #     echo end kubeconfig
   #     PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
 
-      content = { commands: ['/opt/bin/meterctl install-master'],
-                  workingDirectory: ['/root'],
-                  schema_version: '2.2'
-                }
+      c = { instance_ids: [instance.id],
+            document_name: 'AWS-RunShellScript',
+            comment: '6fusion Meter installation',
+            parameters: {
+              commands: ['END_USER_LICENSE_ACCEPTED=yes meterctl install-master'] } }
 
-      response = ssm.create_document({ content: content.to_json,
-                                       name: 'MeterInstallMasterContent',
-                                       document_type: 'Command'
-                                     })
+      response = ssm.send_command(c)
       p response
-      #      response = ssm.send_command({ instance_ids: [ instance.id ],
 
-
+      c = { instance_ids: [instance.id],
+            document_name: 'AWS-RunShellScript',
+            comment: '6fusion Meter kubeconfig',
+            output_s3_bucket_name: '6fusion-dev-lita',
+            output_s3_key_prefix: 'meter-installs',
+            parameters: {
+              commands: ['/opt/bin/kubectl config view --flatten'] } }
+      response = ssm.send_command(c)
+      p response
 
       instance
     end
