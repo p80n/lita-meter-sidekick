@@ -31,6 +31,9 @@ module LitaMeterSidekick
                              security_group_ids: [security_group(az)],
                              user_data: user_data,
                              instance_type: instance_type(options),
+                             iam_instance_profile: {
+                               arn: "arn:aws:iam::499008556223:role/ssm-full-access",
+                               name: "ssm-full-access" },
                              placement: { availability_zone: az },
                              block_device_mappings: block_device_mappings }
 
