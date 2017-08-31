@@ -55,6 +55,9 @@ module LitaMeterSidekick
 
         instance
       rescue => e
+        if e.message.match(/Encoded authorization failure/)
+          p e
+        end
         response.reply(render_template('exception', exception: e))
         raise e
       end
