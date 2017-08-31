@@ -51,7 +51,12 @@ module LitaMeterSidekick
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance available via \n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation in progress...")
+        response.reply("Instance available via \n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation will begin shortly...")
+
+        # Wait for the instance to be created, running, and passed status checks
+        ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){|w|
+          response.reply("Meter installation underway...") }
+
 
         instance
       rescue => e
