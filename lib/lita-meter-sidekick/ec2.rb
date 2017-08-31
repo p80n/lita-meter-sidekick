@@ -32,7 +32,7 @@ module LitaMeterSidekick
                              user_data: user_data,
                              instance_type: instance_type(options),
                              iam_instance_profile: {
-                               name: "lita-meter-ssm-role" },
+                               name: "ssm-full-access" },
                              placement: { availability_zone: az },
                              block_device_mappings: block_device_mappings }
 
