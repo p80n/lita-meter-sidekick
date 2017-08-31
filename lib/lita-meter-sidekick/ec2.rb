@@ -44,7 +44,8 @@ module LitaMeterSidekick
           w.max_attempts = 100
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
 
-        instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user_for(response.user.mention_name)})" },
+        aws_user = aws_user_for(response.user.mention_name)
+        instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)}" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
@@ -66,6 +67,10 @@ module LitaMeterSidekick
         response.reply(render_template('exception', exception: e))
         raise e
       end
+    end
+
+    def deploy_count(user)
+      counter = redis.incr("#{user}-deploy-count")
     end
 
     def deploy_meter(response)
