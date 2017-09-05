@@ -45,25 +45,22 @@ module LitaMeterSidekick
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
 
         aws_user = aws_user_for(response.user.mention_name)
-        instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)}" },
+        instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)})" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance available via \n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation will begin shortly...")
+        response.reply("Instance running. You can connect with:\n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation will begin after status checks complete...")
 
         # Wait for the instance to be created, running, and passed status checks
-        ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){|w|
-          response.reply("Meter installation underway...") }
-
+        ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
+        response.reply("Meter installation underway...") }
 
         instance
       rescue => e
-        if e.message.match(/Encoded authorization failure/)
-          p e
-        end
+        p e if e.message.match(/Encoded authorization failure/)
         response.reply(render_template('exception', exception: e))
         raise e
       end
@@ -99,18 +96,25 @@ module LitaMeterSidekick
             parameters: {
               commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master'] } }
 
-      response = ssm.send_command(c)
+      command = ssm.send_command(c)
       p response
+      sleep 10 while command.status =~ /Pending|InProgress/
 
-      c = { instance_ids: [instance.id],
-            document_name: 'AWS-RunShellScript',
-            comment: '6fusion Meter kubeconfig',
-            output_s3_bucket_name: '6fusion-dev-lita',
-            output_s3_key_prefix: 'meter-installs',
-            parameters: {
-              commands: ['/opt/bin/kubectl config view --flatten'] } }
-      response = ssm.send_command(c)
-      p response
+      if command.status == 'Success'
+        c = { instance_ids: [instance.id],
+              document_name: 'AWS-RunShellScript',
+              comment: '6fusion Meter kubeconfig',
+              output_s3_bucket_name: '6fusion-dev-lita',
+              output_s3_key_prefix: 'meter-installs',
+              parameters: {
+                commands: ['/opt/bin/kubectl config view --flatten'] } }
+        command = ssm.send_command(c)
+        sleep 2 while command.status =~ /Pending|InProgress/
+        p command
+
+      else
+        response.reply("Error installing meter: " command.status_details)
+      end
 
       instance
     end
@@ -127,14 +131,14 @@ module LitaMeterSidekick
         when 64  # stopping
           response.reply("Instance #{instance_id} is shutting down")
         when 89  # stopped
-          response.reply("Instance #{instance_id} is currently stopped, terminating...")
+          response.reply("Instance #{instance_id} is currently stopped, terminating")
           instance.terminate
         else
           instance.terminate
-          response.reply("Terminating instance #{instance_id}...")
+          response.reply("Terminating instance #{instance_id}")
         end
       else
-        response.reply("Not able to find any instance with id #{instance_id}.")
+        response.reply("Not able to find any instance with id #{instance_id}")
       end
     end
 
