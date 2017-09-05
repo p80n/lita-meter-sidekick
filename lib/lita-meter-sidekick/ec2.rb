@@ -56,7 +56,7 @@ module LitaMeterSidekick
 
         # Wait for the instance to be created, running, and passed status checks
         ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
-        response.reply("Meter installation underway...") }
+        response.reply("Meter installation underway...")
 
         instance
       rescue => e
@@ -67,7 +67,7 @@ module LitaMeterSidekick
     end
 
     def deploy_count(user)
-      counter = redis.incr("#{user}-deploy-count")
+      redis.incr("#{user}-deploy-count")
     end
 
     def deploy_meter(response)
@@ -113,7 +113,7 @@ module LitaMeterSidekick
         p command
 
       else
-        response.reply("Error installing meter: " command.status_details)
+        response.reply("Error installing meter: " + command.status_details)
       end
 
       instance
