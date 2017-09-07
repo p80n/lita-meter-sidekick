@@ -52,7 +52,7 @@ module LitaMeterSidekick
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance running. You can connect with:\n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation will begin after status checks complete...")
+        response.reply("Instance running. You can connect with:\n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation will begin after instance status checks complete...")
 
         # Wait for the instance to be created, running, and passed status checks
         ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
@@ -96,25 +96,56 @@ module LitaMeterSidekick
             parameters: {
               commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master'] } }
 
-      command = ssm.send_command(c)
-      p response
-      sleep 10 while command.status =~ /Pending|InProgress/
+      response = ssm.send_command(c)
 
-      if command.status == 'Success'
-        c = { instance_ids: [instance.id],
-              document_name: 'AWS-RunShellScript',
-              comment: '6fusion Meter kubeconfig',
-              output_s3_bucket_name: '6fusion-dev-lita',
-              output_s3_key_prefix: 'meter-installs',
-              parameters: {
-                commands: ['/opt/bin/kubectl config view --flatten'] } }
-        command = ssm.send_command(c)
-        sleep 2 while command.status =~ /Pending|InProgress/
-        p command
+      ssm.client.wait_until{|waiter| p waiter;
+        response.command.status == 'Success' }
 
-      else
-        response.reply("Error installing meter: " + command.status_details)
+      p "waiter done"
+
+      c = { instance_ids: [instance.id],
+            document_name: 'AWS-RunShellScript',
+            comment: '6fusion Meter installation',
+            parameters: {
+              commands: ['pgrep meterctl'] } }
+      install_complete = false
+i = 0
+      while !install_complete
+        sleep 10
+        i += 1
+        response = ssm.send_command(c)
+
+        resp = ssm.get_command_invocation({ command_id: response.command.id,
+                                            instance_id: instance.id })
+        p resp
+        install_complete = resp.standard_output_content.empty?
+        break if i == 10
       end
+
+#resp.instance_association_status_infos[0].output_url.s3_output_url.output_url #=> String
+
+
+      c = { instance_ids: [instance.id],
+            document_name: 'AWS-RunShellScript',
+            comment: '6fusion Meter installation',
+            parameters: {
+              commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master'] } }
+
+
+      c = { instance_ids: [instance.id],
+            document_name: 'AWS-RunShellScript',
+            comment: '6fusion Meter kubeconfig',
+            output_s3_bucket_name: '6fusion-dev-lita',
+            output_s3_key_prefix: 'meter-installs',
+            parameters: {
+              commands: ['/opt/bin/kubectl config view --flatten'] } }
+      response = ssm.send_command(c)
+
+      p response
+      puts "===================================================================================================="
+      p response.command
+
+      #   response.reply("Error installing meter: " + response.command.status_details)
 
       instance
     end
@@ -137,7 +168,7 @@ module LitaMeterSidekick
           instance.terminate
           response.reply("Terminating instance #{instance_id}")
         end
-      else
+        else
         response.reply("Not able to find any instance with id #{instance_id}")
       end
     end

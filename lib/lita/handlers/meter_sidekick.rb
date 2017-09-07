@@ -29,6 +29,8 @@ module Lita
         route(/list meters/,        :list_deployed_meters, help:  { "#{name}: list meters" => 'List all instances of the Meter' })
         route(/list my instances/,  :list_user_instances,  help:  { "#{name}: list my instances" => 'List all instances owned by you' })
 
+        # if not route matches, reply with help?
+
         Lita.register_handler(self)
 
       rescue => e
