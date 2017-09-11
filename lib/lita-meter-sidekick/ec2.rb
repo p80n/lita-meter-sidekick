@@ -74,7 +74,7 @@ module LitaMeterSidekick
       az = availability_zone(options)
       ec2 = Aws::EC2::Resource.new(region: az.chop)
       response.reply("Meter installation will begin after instance status checks complete...")
-      ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
+      ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance.id]}){}
       response.reply("Meter installation underway...")
 
       options = response.matches[0][0]
