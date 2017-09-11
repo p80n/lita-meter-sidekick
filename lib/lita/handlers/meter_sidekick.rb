@@ -16,10 +16,10 @@ module Lita
               :deploy_meter,
               help: { "#{name}: meter deploy [options]" =>
                       'Deploy a meter. Options can be instance type and/or volume size (XXgb). Defaults to m4.xlarge with 30GB of storage.'})
-        # route(/deploy instance (.*)/,
-        #       :deploy_instance,
-        #       help: { "#{name}: deploy instance DEETS" =>
-        #               'Deploy an instance, DEETS can be a region, instance type. Defaults to t2.xlarge'})
+        route(/instance deploy (.*)/,
+              :deploy_instance,
+              help: { "#{name}: instance deploy [options]" =>
+                      'Deploy an instance, Options can be a region, instance type. Defaults to m4.xlarge'})
 
         route(/instance terminate (i-\w+)/, :terminate_instance, help: { "#{name}: instance terminate INSTANCE_ID" => 'Terminate the instance' })
         route(/terminate instance (i-\w+)/, :terminate_instance, help: { "#{name}: terminate instance INSTANCE_ID" => 'Terminate the instance' })

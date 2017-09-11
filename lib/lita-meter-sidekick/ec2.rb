@@ -98,7 +98,7 @@ module LitaMeterSidekick
 
       response = ssm.send_command(c)
 
-      ssm.client.wait_until{|waiter| p waiter;
+      ssm.wait_until{|waiter| p waiter;
         response.command.status == 'Success' }
 
       p "waiter done"
@@ -144,6 +144,8 @@ i = 0
       p response
       puts "===================================================================================================="
       p response.command
+
+# will need to sed private server: IP with public IP/host
 
       #   response.reply("Error installing meter: " + response.command.status_details)
 
