@@ -69,11 +69,13 @@ module LitaMeterSidekick
     def deploy_meter(response)
       instance = deploy_instance(response)
         # Wait for the instance to be created, running, and passed status checks
-
-       # Meter installation will begin after instance status checks complete...")
-        # TOD move this down to deploy_meter
-        # ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
-        response.reply("Meter installation underway...")
+# dry this up; passing ec2 into methods?
+      options = response.matches[0][0]
+      az = availability_zone(options)
+      ec2 = Aws::EC2::Resource.new(region: az.chop)
+      response.reply("Meter installation will begin after instance status checks complete...")
+      ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
+      response.reply("Meter installation underway...")
 
       options = response.matches[0][0]
       az = availability_zone(options)
@@ -99,10 +101,10 @@ module LitaMeterSidekick
             parameters: {
               commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master'] } }
 
-      response = ssm.send_command(c)
+      resp = ssm.send_command(c)
 
       ssm.wait_until{|waiter| p waiter;
-        response.command.status == 'Success' }
+        resp.command.status == 'Success' }
 
       p "waiter done"
 
@@ -117,11 +119,11 @@ while !install_complete
   puts "install not complete, waiting ##{i}"
         sleep 10
         i += 1
-        response = ssm.send_command(c)
+        resp = ssm.send_command(c)
 
-        resp = ssm.get_command_invocation({ command_id: response.command.id,
+        r = ssm.get_command_invocation({ command_id: resp.command.id,
                                             instance_id: instance.id })
-        p resp
+        p r
         install_complete = resp.standard_output_content.empty?
         break if i == 10
       end
