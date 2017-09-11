@@ -52,12 +52,7 @@ module LitaMeterSidekick
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance running. You can connect with:\n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`\n\nMeter installation will begin after instance status checks complete...")
-
-        # Wait for the instance to be created, running, and passed status checks
-        ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
-        response.reply("Meter installation underway...")
-
+        response.reply("Instance running. You can connect with:\n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
         instance
       rescue => e
         p e if e.message.match(/Encoded authorization failure/)
@@ -72,6 +67,13 @@ module LitaMeterSidekick
 
     def deploy_meter(response)
       instance = deploy_instance(response)
+        # Wait for the instance to be created, running, and passed status checks
+
+       # Meter installation will begin after instance status checks complete...")
+        # TOD move this down to deploy_meter
+        # ec2.client.wait_until(:instance_status_ok, {instance_ids: [instances[0].id]}){}
+        response.reply("Meter installation underway...")
+
       options = response.matches[0][0]
       az = availability_zone(options)
       ssm = Aws::SSM::Client.new(region: az.chop)

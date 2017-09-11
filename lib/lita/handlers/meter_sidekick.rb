@@ -16,7 +16,7 @@ module Lita
               :deploy_meter,
               help: { "#{name}: meter deploy [options]" =>
                       'Deploy a meter. Options can be instance type and/or volume size (XXgb). Defaults to m4.xlarge with 30GB of storage.'})
-        route(/instance deploy (.*)/,
+        route(/instance deploy\s*(.*)/,
               :deploy_instance,
               help: { "#{name}: instance deploy [options]" =>
                       'Deploy an instance, Options can be a region, instance type. Defaults to m4.xlarge'})
