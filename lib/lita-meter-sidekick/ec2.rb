@@ -45,6 +45,7 @@ module LitaMeterSidekick
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
 
         aws_user = aws_user_for(response.user.mention_name)
+        # FIXME this tag is not "correct" for `instance deploy` route
         instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)})" },
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
@@ -112,7 +113,8 @@ module LitaMeterSidekick
               commands: ['pgrep meterctl'] } }
       install_complete = false
 i = 0
-      while !install_complete
+while !install_complete
+  puts "install not complete, waiting ##{i}"
         sleep 10
         i += 1
         response = ssm.send_command(c)
