@@ -29,6 +29,7 @@ module Lita
         route(/list meters/,        :list_deployed_meters, help:  { "#{name}: list meters" => 'List all instances of the Meter' })
         route(/list my instances/,  :list_user_instances,  help:  { "#{name}: list my instances" => 'List all instances owned by you' })
 
+        route(/set ssh-key-path\s+(.+)/, :set_user_ssh_key_path, help: { "#{name}: Update the connect response to be specific to me (and copy/paste friendlier)" })
         # if not route matches, reply with help?
 
         Lita.register_handler(self)

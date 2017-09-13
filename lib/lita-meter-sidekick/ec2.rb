@@ -53,7 +53,7 @@ module LitaMeterSidekick
                                              { key: 'ApplicationRole', value: '6fusion-meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
-        response.reply("Instance running. You can connect with:\n\n`ssh -i #{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
+        response.reply("Instance running. You can connect with:\n\n`ssh -i #{user_key_prefix(response)}#{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
         instance
       rescue => e
         p e if e.message.match(/Encoded authorization failure/)
@@ -105,8 +105,8 @@ module LitaMeterSidekick
         sleep 10
         i += 1
         resp = ssm.send_command(c)
-        r = ssm.get_command_invocation({ command_id: resp.command.id,
-                                            instance_id: instance.id })
+        r = ssm.get_command_invocation({ command_id: resp.command.command_id,
+                                         instance_id: instance.id })
         p r
         install_complete = resp.standard_output_content.empty?
         break if i == 20
@@ -355,6 +355,15 @@ module LitaMeterSidekick
           redis.expire('meter_image_id', 3600)
           latest.image_id
         end
+    end
+
+    def set_user_ssh_key_path(response)
+      user_path = response.matches[0][0]
+      redis.hset('ssh_key_paths', response.user.mention_name, user_path.sub(%r|/$|, ''))
+    end
+    def user_key_prefix(response)
+      path = redis.hget('ssh_key_paths', response.user.mention_name)
+      path || "#{path}/"
     end
 
   end
