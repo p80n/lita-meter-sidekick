@@ -81,20 +81,6 @@ module LitaMeterSidekick
       az = availability_zone(options)
       ssm = Aws::SSM::Client.new(region: az.chop)
 
-  # - path: "/root/install-meter"
-  #   permissions: "0755"
-  #   owner: "root"
-  #   content: |
-  #     #!/bin/sh
-  #     HOSTNAME=$(curl -s http://instance-data/latest/meta-data/public-hostname)
-  #     PUBLIC_IP=$(curl -s http://instance-data/latest/meta-data/public-ipv4)
-  #     PRIVATE_IP=$(curl -s http://instance-data/latest/meta-data/local-ipv4)
-  #     PATH=$PATH:/opt/bin END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl install-master -f $HOSTNAME -P $PUBLIC_IP -p $PRIVATE_IP | tee /dev/console
-  #     echo begin kubeconfig
-  #     /usr/bin/sed -r 's|(^.+-authority): (.+)|printf "\1-data: %s" $(base64 -w0 \2)|e; s|(^.+-certificate: )(.+)|printf "    client-certificate-data: %s" $(base64 -w0 \2)|e;   s|(^ *client-key: )(.+)|printf "    client-key-data: %s" $(base64 -w0 \2)|e;'   /root/.kube/config | tee /dev/console
-  #     echo end kubeconfig
-  #     PATH=$PATH:/opt/bin /opt/bin/meterctl install-completion
-
       c = { instance_ids: [instance.id],
             document_name: 'AWS-RunShellScript',
             comment: '6fusion Meter installation',
@@ -103,10 +89,9 @@ module LitaMeterSidekick
 
       resp = ssm.send_command(c)
 
-      ssm.wait_until{|waiter| p waiter;
-        resp.command.status == 'Success' }
-
-      p "waiter done"
+      # ssm.wait_until{|waiter| p waiter;
+      #   resp.command.status == 'Success' }
+      # p "waiter done"
 
       c = { instance_ids: [instance.id],
             document_name: 'AWS-RunShellScript',
@@ -114,28 +99,20 @@ module LitaMeterSidekick
             parameters: {
               commands: ['pgrep meterctl'] } }
       install_complete = false
-i = 0
-while !install_complete
-  puts "install not complete, waiting ##{i}"
+      i = 0
+      while !install_complete
+        puts "install not complete, waiting ##{i}"
         sleep 10
         i += 1
         resp = ssm.send_command(c)
-
         r = ssm.get_command_invocation({ command_id: resp.command.id,
                                             instance_id: instance.id })
         p r
         install_complete = resp.standard_output_content.empty?
-        break if i == 10
+        break if i == 20
       end
 
-#resp.instance_association_status_infos[0].output_url.s3_output_url.output_url #=> String
-
-
-      c = { instance_ids: [instance.id],
-            document_name: 'AWS-RunShellScript',
-            comment: '6fusion Meter installation',
-            parameters: {
-              commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master'] } }
+ #resp.instance_association_status_infos[0].output_url.s3_output_url.output_url #=> String
 
 
       c = { instance_ids: [instance.id],
@@ -151,7 +128,7 @@ while !install_complete
       puts "===================================================================================================="
       p response.command
 
-# will need to sed private server: IP with public IP/host
+      # will need to sed private server: IP with public IP/host
 
       #   response.reply("Error installing meter: " + response.command.status_details)
 
