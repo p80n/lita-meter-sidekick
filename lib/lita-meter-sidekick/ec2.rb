@@ -50,7 +50,7 @@ module LitaMeterSidekick
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
-                                             { key: 'ApplicationRole', value: '6fusion-meter' }
+                                             { key: 'ApplicationRole', value: '6fusion-Meter' }
                                             ]})
         instance = Aws::EC2::Instance.new(instances.first.id, client: ec2.client)
         response.reply("Instance running. You can connect with:\n\n`ssh -i #{user_key_prefix(response)}#{ssh_key(az)}.pem core@#{instance.public_dns_name}`")
@@ -161,7 +161,7 @@ module LitaMeterSidekick
     ####################################################################################################
     # List operations
     def list_deployed_meters(response)
-      list_instances(response, [{ name: 'tag:ApplicationRole', values: ['6fusionMeter'] }])
+      list_instances(response, [{ name: 'tag:ApplicationRole', values: ['6fusion-Meter'] }])
     end
     def list_user_instances(response)
       list_instances(response, [{ name: 'tag:Owner', values: [aws_user_for(response.user.mention_name)] }])
@@ -191,6 +191,12 @@ module LitaMeterSidekick
       end
     end
 
+    def set_user_ssh_key_path(response)
+      user_path = response.matches[0][0]
+      redis.hset('ssh_key_paths', response.user.mention_name, user_path.sub(%r|/$|, ''))
+      response.reply("Key path preference saved")
+    end
+    
     private
     def volume_size(options)
       md = options.match(/\b(\d+)gi*b/i)
@@ -357,10 +363,6 @@ module LitaMeterSidekick
         end
     end
 
-    def set_user_ssh_key_path(response)
-      user_path = response.matches[0][0]
-      redis.hset('ssh_key_paths', response.user.mention_name, user_path.sub(%r|/$|, ''))
-    end
     def user_key_prefix(response)
       path = redis.hget('ssh_key_paths', response.user.mention_name)
       path || "#{path}/"
