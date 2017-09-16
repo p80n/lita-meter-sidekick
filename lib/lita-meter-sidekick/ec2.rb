@@ -105,6 +105,10 @@ module LitaMeterSidekick
         sleep 10
         i += 1
         resp = ssm.send_command(c)
+        p resp.command
+        puts "****************************************************************************************************"
+        p resp.command.command_id
+        p "instance id: #{instance.id}"
         r = ssm.get_command_invocation({ command_id: resp.command.command_id,
                                          instance_id: instance.id })
         p r

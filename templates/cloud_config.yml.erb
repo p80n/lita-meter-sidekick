@@ -13,8 +13,8 @@ coreos:
         [Service]
         Type=oneshot
         ExecStart=/usr/bin/mkdir -p /opt/bin/
-        ExecStart=[ -f /opt/bin/meterctl-alpha ] || /usr/bin/curl -o /opt/bin/meterctl-alpha https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl
-        ExecStart=[ -f /opt/bin/meterctl ] || /usr/bin/curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
+        ExecStart=/usr/bin/curl -o /opt/bin/meterctl-alpha https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl
+        ExecStart=/usr/bin/curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
         ExecStart=/usr/bin/chmod +x /opt/bin/meterctl*
     - name: amazon-ssm-agent.service
       command: start
