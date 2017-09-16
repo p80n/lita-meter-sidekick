@@ -369,7 +369,7 @@ module LitaMeterSidekick
 
     def user_key_prefix(response)
       path = redis.hget('ssh_key_paths', response.user.mention_name)
-      path || "#{path}/"
+      path.nil? ? "" : "#{path}/"
     end
 
   end
