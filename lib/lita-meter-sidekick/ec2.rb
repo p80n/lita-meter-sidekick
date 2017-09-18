@@ -369,7 +369,12 @@ module LitaMeterSidekick
 
     def user_key_prefix(response)
       path = redis.hget('ssh_key_paths', response.user.mention_name)
-      path.nil? ? "" : "#{path}/"
+      if path.nil?
+        response.reply("You can set a path to your ssh keys - for future replies - with `lita  set ssh-key-path PATH`")
+        ""
+      else
+        "#{path}/"
+      end
     end
 
   end

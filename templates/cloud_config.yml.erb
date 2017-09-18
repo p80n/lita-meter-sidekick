@@ -12,10 +12,10 @@ coreos:
 
         [Service]
         Type=oneshot
-        ExecStart=/usr/bin/mkdir -p /opt/bin/
+        ExecStartPre=/usr/bin/mkdir -p /opt/bin/
         ExecStart=/usr/bin/curl -o /opt/bin/meterctl-alpha https://s3.amazonaws.com/6fusion-meter-dev/coreos/alpha/meterctl
         ExecStart=/usr/bin/curl -o /opt/bin/meterctl https://s3.amazonaws.com/6fusion-meter-dev/coreos/<%= @version %>/meterctl
-        ExecStart=/usr/bin/chmod +x /opt/bin/meterctl*
+        ExecStartPost=/usr/bin/chmod +x /opt/bin/meterctl*
     - name: amazon-ssm-agent.service
       command: start
       content: |
