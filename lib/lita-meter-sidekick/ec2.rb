@@ -15,6 +15,14 @@ module LitaMeterSidekick
         options = response.matches[0][0]
         az = availability_zone(options)
         instance_type = instance_type(options)
+
+        if md = options.match(/name=(\w+)/)
+          instance_name = md[1]
+        else
+          aws_user = aws_user_for(response.user.mention_name)
+          instance_name = "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)})"
+        end
+
         response.reply("Deploying #{instance_type} to #{az.chop}...")
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
@@ -45,9 +53,8 @@ module LitaMeterSidekick
           w.max_attempts = 100
           response.reply("Waiting for instance #{instances[0].id} to spin up...") }
 
-        aws_user = aws_user_for(response.user.mention_name)
         # FIXME this tag is not "correct" for `instance deploy` route
-        instances.batch_create_tags({ tags: [{ key: 'Name', value: "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)})" },
+        instances.batch_create_tags({ tags: [{ key: 'Name', value: instance_name},
                                              { key: 'CostCenter', value: 'development' },
                                              { key: 'Owner', value: aws_user_for(response.user.mention_name) },
                                              { key: 'DeployedBy', value: 'lita' },
