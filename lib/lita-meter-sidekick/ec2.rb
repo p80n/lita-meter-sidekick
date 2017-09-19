@@ -14,7 +14,8 @@ module LitaMeterSidekick
          # currently hard-coded to deploy a meter. need to figure out how to update user_data, and add tags later, etc
         options = response.matches[0][0]
         az = availability_zone(options)
-        response.reply("Deploying instance to #{az.chop}...")
+        instance_type = instance_type(options)
+        response.reply("Deploying #{instance_type} to #{az.chop}...")
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
         ec2 = Aws::EC2::Resource.new(region: az.chop)
@@ -30,7 +31,7 @@ module LitaMeterSidekick
                              key_name: ssh_key(az),
                              security_group_ids: [security_group(az)],
                              user_data: user_data,
-                             instance_type: instance_type(options),
+                             instance_type: instance_type,
                              iam_instance_profile: {
                                name: "ssm-full-access" },
                              placement: { availability_zone: az },
@@ -109,6 +110,12 @@ module LitaMeterSidekick
         puts "****************************************************************************************************"
         p resp.command.command_id
         p "instance id: #{instance.id}"
+
+        sleep 5
+
+        p resp.command
+        puts "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+
         r = ssm.get_command_invocation({ command_id: resp.command.command_id,
                                          instance_id: instance.id })
         p r
@@ -254,7 +261,7 @@ module LitaMeterSidekick
 
     def instance_type(str)
       puts "Checking #{str} for instance type"
-      md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|small|medium|large|xlarge))/)
+      md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|micro|small|medium|large|xlarge))/)
       md ? md[1] : 'm4.xlarge'
     end
 
