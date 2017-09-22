@@ -15,11 +15,11 @@ module LitaMeterSidekick
         options = response.matches[0][0]
         az = availability_zone(options)
         instance_type = instance_type(options)
+        aws_user = aws_user_for(response.user.mention_name)
 
-        if md = options.match(/name=(\w+)/)
-          instance_name = md[1]
+        if md = options.match(/name=([^\s]+)/)
+          instance_name = "#{md[1]} (#{aws_user}-#{deploy_count(aws_user)})"
         else
-          aws_user = aws_user_for(response.user.mention_name)
           instance_name = "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)})"
         end
 
@@ -40,8 +40,7 @@ module LitaMeterSidekick
                              security_group_ids: [security_group(az)],
                              user_data: user_data,
                              instance_type: instance_type,
-                             iam_instance_profile: {
-                               name: "ssm-full-access" },
+                             iam_instance_profile: { name: "ssm-full-access" },
                              placement: { availability_zone: az },
                              block_device_mappings: block_device_mappings }
 
@@ -56,7 +55,7 @@ module LitaMeterSidekick
         # FIXME this tag is not "correct" for `instance deploy` route
         instances.batch_create_tags({ tags: [{ key: 'Name', value: instance_name},
                                              { key: 'CostCenter', value: 'development' },
-                                             { key: 'Owner', value: aws_user_for(response.user.mention_name) },
+                                             { key: 'Owner', value: aws_user },
                                              { key: 'DeployedBy', value: 'lita' },
                                              { key: 'ApplicationRole', value: '6fusion-Meter' }
                                             ]})
