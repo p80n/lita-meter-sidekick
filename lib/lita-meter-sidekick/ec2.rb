@@ -17,7 +17,7 @@ module LitaMeterSidekick
         instance_type = instance_type(options)
         aws_user = aws_user_for(response.user.mention_name)
 
-        if md = options.match(/name=([^\s]+)/)
+        if md = options.match(/=name=(?:"([^"]+)"|([^\s]+))/)[1] # extracts name from: name="foo bar" or just name=foo or just name=foo bar=baz
           instance_name = "#{md[1]} (#{aws_user}-#{deploy_count(aws_user)})"
         else
           instance_name = "6fusion Meter (#{aws_user}-#{deploy_count(aws_user)})"
