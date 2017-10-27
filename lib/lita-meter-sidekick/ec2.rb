@@ -17,6 +17,7 @@ module LitaMeterSidekick
         instance_type = instance_type(options)
         aws_user = aws_user_for(response.user.mention_name)
 
+
         if md = options.match(/=name=(?:"([^"]+)"|([^\s]+))/) # extracts name from: name="foo bar" or just name=foo or just name=foo bar=baz
           instance_name = "#{md[1]} (#{aws_user}-#{deploy_count(aws_user)})"
         else
@@ -26,6 +27,11 @@ module LitaMeterSidekick
         response.reply("Deploying #{instance_type} to #{az.chop}...")
 
         user_data = Base64.strict_encode64(render_template('cloud_config.yml', version: 'alpha'))
+
+        puts "====== cloud config ======="
+        puts user_data
+        puts "==========================="
+
         ec2 = Aws::EC2::Resource.new(region: az.chop)
 
         block_device_mappings = [{ device_name: "/dev/xvda",
@@ -117,7 +123,7 @@ module LitaMeterSidekick
         p resp.command.command_id
         p "instance id: #{instance.id}"
 
-        sleep 5
+        sleep 10
 
         p resp.command
         puts "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
@@ -125,13 +131,13 @@ module LitaMeterSidekick
         r = ssm.get_command_invocation({ command_id: resp.command.command_id,
                                          instance_id: instance.id })
         p r
-        install_complete = resp.standard_output_content.empty?
+        p __LINE__
+        install_complete = r.standard_output_content.empty?
         break if i == 20
       end
-
- #resp.instance_association_status_infos[0].output_url.s3_output_url.output_url #=> String
-
-
+      p __LINE__
+      p "i=#{i}"
+      #resp.instance_association_status_infos[0].output_url.s3_output_url.output_url #=> String
       c = { instance_ids: [instance.id],
             document_name: 'AWS-RunShellScript',
             comment: '6fusion Meter kubeconfig',
@@ -139,6 +145,7 @@ module LitaMeterSidekick
             output_s3_key_prefix: 'meter-installs',
             parameters: {
               commands: ['/opt/bin/kubectl config view --flatten'] } }
+      p "SENDING COMAMND"
       response = ssm.send_command(c)
 
       p response
@@ -187,7 +194,6 @@ module LitaMeterSidekick
       tag,value = response.matches[0][0..1]
       list_instances(response, [{ name: "tag:#{tag}", values: [value] }])
     end
-
 
     def list_instances(response, filters=nil)
       instances = Array.new
@@ -270,6 +276,12 @@ module LitaMeterSidekick
       md = str.match(/(\p{L}{1,2}\d\.\d?(?:nano|micro|small|medium|large|xlarge))/)
       md ? md[1] : 'm4.xlarge'
     end
+
+    def version(str)
+      md = str.match(/([\d\.]+|alpha|beta/)
+      md ? md[1] : 'stable'
+    end
+
 
     def availability_zone(str)
       str = 'ohio'
@@ -389,6 +401,7 @@ module LitaMeterSidekick
         "#{path}/"
       end
     end
+
 
   end
 end
