@@ -278,7 +278,7 @@ module LitaMeterSidekick
     end
 
     def version(str)
-      md = str.match(/([\d\.]+|alpha|beta/)
+      md = str.match(/([\d\.]+|alpha|beta)/)
       md ? md[1] : 'stable'
     end
 
