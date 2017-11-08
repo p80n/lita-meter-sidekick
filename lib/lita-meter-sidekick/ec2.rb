@@ -98,7 +98,7 @@ module LitaMeterSidekick
             document_name: 'AWS-RunShellScript',
             comment: '6fusion Meter installation',
             parameters: {
-              commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master > /root/install-stdout.log'] } }
+              commands: ['PATH="$PATH:/opt/bin" END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master > /root/install-stdout.log'] } }
 
       resp = ssm.send_command(c)
 
