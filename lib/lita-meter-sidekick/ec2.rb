@@ -86,7 +86,7 @@ module LitaMeterSidekick
       options = response.matches[0][0]
       az = availability_zone(options)
       ec2 = Aws::EC2::Resource.new(region: az.chop)
-      response.reply("Meter installation will begin after instance status checks complete...")
+      response.reply("Meter installation will begin after EC2 instance status checks complete... :clock3:")
       ec2.client.wait_until(:instance_status_ok, {instance_ids: [instance.id]}){}
       response.reply("Meter installation underway...")
 
@@ -98,7 +98,7 @@ module LitaMeterSidekick
             document_name: 'AWS-RunShellScript',
             comment: '6fusion Meter installation',
             parameters: {
-              commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master'] } }
+              commands: ['END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master > /root/install-stdout.log'] } }
 
       resp = ssm.send_command(c)
 
@@ -379,7 +379,7 @@ module LitaMeterSidekick
     def coreos_image_id(region, response)
       redis.hget('meter_image_id', region) ||
         begin
-          response.reply("Retrieving latest 6fusion Meter AMI for #{region}. This will take a moment... :clock3:")
+          response.reply("Retrieving latest 6fusion Meter AMI for #{region}. This may take a moment... :clock3:")
           result = Aws::EC2::Client.new(region: region)
                      .describe_images(owners:  ['self'],
                                       filters: [{name: 'virtualization-type', values: ['hvm']},
