@@ -9,27 +9,27 @@ module Lita
         Lita.configure{|config|
           name = config.robot.name }
 
-        route(/latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
-        route(/meter latest/,   :latest, help: { "#{name}: meter latest"   => 'Links to installers for latest version of the Meter' })
+        route(/^latest release/, :latest, help: { "#{name}: latest release" => 'Links to installers for latest version of the Meter' })
+        route(/^meter latest/,   :latest, help: { "#{name}: meter latest"   => 'Links to installers for latest version of the Meter' })
 
-        route(/meter deploy\s*(.*)/,
+        route(/^meter deploy\s*(.*)/,
               :deploy_meter,
               help: { "#{name}: meter deploy [options]" =>
                       'Deploy a meter. Options can be instance type and/or volume size (XXgb). Defaults to m4.xlarge with 30GB of storage.'})
-        route(/instance deploy\s*(.*)/,
+        route(/^instance deploy\s*(.*)/,
               :deploy_instance,
               help: { "#{name}: instance deploy [options]" =>
                       'Deploy an instance, Options can be a region, instance type. Defaults to m4.xlarge'})
 
-        route(/instance terminate\s+(i-\w+)/, :terminate_instance, help: { "#{name}: instance terminate INSTANCE_ID" => 'Terminate the instance' })
-        route(/terminate(?: instance)*\s+(i-\w+)/, :terminate_instance, help: { "#{name}: terminate instance INSTANCE_ID" => 'Terminate the instance' })
+        route(/^instance terminate\s+(i-\w+)/, :terminate_instance, help: { "#{name}: instance terminate INSTANCE_ID" => 'Terminate the instance' })
+        route(/^terminate(?: instance)*\s+(i-\w+)/, :terminate_instance, help: { "#{name}: terminate instance INSTANCE_ID" => 'Terminate the instance' })
 
-        route(/list instances\s+(\w+)=(\w+)/, :list_filtered_instances, help: { "#{name}: list instances TAG=VALUE" => 'List instances, filtered by tag' })
-        route(/list instances$/,    :list_instances,       help: { "#{name}: list instances" => 'List all instances in EC2' })
-        route(/list meters/,        :list_deployed_meters, help:  { "#{name}: list meters" => 'List all instances of the Meter' })
-        route(/list my instances/,  :list_user_instances,  help:  { "#{name}: list my instances" => 'List all instances owned by you' })
+        route(/^list instances\s+(\w+)=(\w+)/, :list_filtered_instances, help: { "#{name}: list instances TAG=VALUE" => 'List instances, filtered by tag' })
+        route(/^list instances$/,    :list_instances,       help: { "#{name}: list instances" => 'List all instances in EC2' })
+        route(/^list meters/,        :list_deployed_meters, help:  { "#{name}: list meters" => 'List all instances of the Meter' })
+        route(/^list my instances/,  :list_user_instances,  help:  { "#{name}: list my instances" => 'List all instances owned by you' })
 
-        route(/set ssh-key-path\s+(.+)/, :set_user_ssh_key_path, help: { "#{name}: set ssh-key-path" => 'Update the connect response to be specific to me (and copy/paste friendlier)' })
+        route(/^set ssh-key-path\s+(.+)/, :set_user_ssh_key_path, help: { "#{name}: set ssh-key-path" => 'Update the connect response to be specific to me (and copy/paste friendlier)' })
         # if not route matches, reply with help?
 
         Lita.register_handler(self)
