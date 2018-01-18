@@ -97,9 +97,10 @@ module LitaMeterSidekick
       c = { instance_ids: [instance.id],
             document_name: 'AWS-RunShellScript',
             comment: '6fusion Meter installation',
-            timeoutSeconds: 1000,
+            timeout_seconds: 1000,
             parameters: {
-              commands: ['PATH="$PATH:/opt/bin" END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master > /root/install-stdout.log'] } }
+              commands: ['PATH="$PATH:/opt/bin" END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master > /root/install-stdout.log'],
+              execution_timeout: 1000 } }
 
       resp = ssm.send_command(c)
 
@@ -115,47 +116,35 @@ module LitaMeterSidekick
       install_complete = false
       i = 0
       while !install_complete
-        puts "install not complete, waiting ##{i}"
-        sleep 10
+        puts "install not complete, check ##{i}"
+        sleep 20
         i += 1
         resp = ssm.send_command(c)
-        p resp.command
-        puts "****************************************************************************************************"
-        p resp.command.command_id
-        p "instance id: #{instance.id}"
-
-        sleep 10
-
-        p resp.command
-        puts "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-
         r = ssm.get_command_invocation({ command_id: resp.command.command_id,
                                          instance_id: instance.id })
-        p r
-        p __LINE__
         install_complete = r.standard_output_content.empty?
         break if i == 20
       end
-      p __LINE__
-      p "i=#{i}"
       #resp.instance_association_status_infos[0].output_url.s3_output_url.output_url #=> String
       c = { instance_ids: [instance.id],
             document_name: 'AWS-RunShellScript',
             comment: '6fusion Meter kubeconfig',
             output_s3_bucket_name: '6fusion-dev-lita',
             output_s3_key_prefix: 'meter-installs',
+            output_s3_region: 'us-east-11',
             parameters: {
               commands: ['/opt/bin/kubectl config view --flatten'] } }
-      p "SENDING COMAMND"
+      p "sending kubectl config view command"
       response = ssm.send_command(c)
 
-      p response
+      p response.inspect
       puts "===================================================================================================="
       p response.command
 
       # will need to sed private server: IP with public IP/host
 
       #   response.reply("Error installing meter: " + response.command.status_details)
+      response.reply("Meter up and running")
 
       instance
     end
