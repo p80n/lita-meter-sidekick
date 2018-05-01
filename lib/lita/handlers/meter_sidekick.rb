@@ -1,3 +1,5 @@
+require 'aws-sdk'
+
 module Lita
   module Handlers
     class MeterSidekick < Handler

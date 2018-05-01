@@ -2,8 +2,8 @@ require 'base64'
 require 'net/http'
 require 'yaml'
 
-require 'aws-sdk'
 require 'lita-slack'
+require 'aws-sdk'
 
 module LitaMeterSidekick
   module EC2
