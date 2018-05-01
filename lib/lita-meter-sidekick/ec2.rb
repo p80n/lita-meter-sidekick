@@ -131,7 +131,7 @@ module LitaMeterSidekick
             comment: '6fusion Meter kubeconfig',
             output_s3_bucket_name: '6fusion-dev-lita',
             output_s3_key_prefix: 'meter-installs',
-            output_s3_region: 'us-east-11',
+            output_s3_region: 'us-east-1',
             parameters: {
               commands: ['/opt/bin/kubectl config view --flatten'] } }
       p "sending kubectl config view command"
