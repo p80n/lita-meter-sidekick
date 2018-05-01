@@ -100,7 +100,7 @@ module LitaMeterSidekick
             timeout_seconds: 1000,
             parameters: {
               commands: ['PATH="$PATH:/opt/bin" END_USER_LICENSE_ACCEPTED=yes /opt/bin/meterctl-alpha install-master > /root/install-stdout.log'],
-              execution_timeout: 1000 } }
+              execution_timeout: ["1000"] } }
 
       resp = ssm.send_command(c)
 
